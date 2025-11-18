@@ -1,8 +1,6 @@
-'use client'
-
 import { useState } from "react"
 
-export default function ListAbsensi() {
+export default function ListKelasDataClient() {
     const [data, setData] = useState<{ data: Array<any>, meta: any } | null>(null)
     const [isLoading, setIsLoading] = useState<boolean>(false)
     const [search, setSearch] = useState<string>("")
