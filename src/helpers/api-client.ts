@@ -1,57 +1,55 @@
-/**
- * Global API configuration
- */
-const API_BASE = process.env.NEXT_PUBLIC_API_URL!
-const DEFAULT_HEADERS = {
-    "Content-Type": "application/json",
+'use client'
+
+const API_BASE = process.env.API_URL!
+
+const DEFAULT_CLIENT_HEADERS = {
     Accept: "application/json",
+    "Content-Type": "application/json",
 }
 
 /**
- * Server-safe fetch wrapper
- * Works in:
- * - Server Components
- * - Client Components
+ * Client-side fetch wrapper with global API configuration
+ * Safe for:
  * - SWR
- * - Server Actions
+ * - Client Components
+ * - Auth via localStorage
  */
-export async function apiFetch(
-    url: string,
-    options: RequestInit = {}
-) {
+export async function apiFetch(url: string, options: RequestInit = {}) {
+    // Resolve full URL
     const fullUrl = url.startsWith("http") ? url : `${API_BASE}${url}`
 
+    // Merge headers
     const headers: HeadersInit = {
-        ...DEFAULT_HEADERS,
+        ...DEFAULT_CLIENT_HEADERS,
         ...(options.headers || {}),
     }
 
-    // 🔥 Token-safe: works on both server and client
-    if (typeof window !== "undefined") {
-        const token = localStorage.getItem("token")
-        if (token) {
-            headers["Authorization"] = `Bearer ${token}`
-        }
+    // 🔥 Attach auth token (client-side only)
+    const token = typeof window !== "undefined"
+        ? localStorage.getItem("token")
+        : null
+
+    if (token) {
+        headers["Authorization"] = `Bearer ${token}`
     }
 
+    // Execute fetch
     const res = await fetch(fullUrl, {
         ...options,
         headers,
-        cache: "no-store", // globally disable caching unless overridden
+        cache: "no-store", // disable caching so SWR handles it
     })
 
-    // Normalize Laravel error response
+    // Normalize error from Laravel API
     if (!res.ok) {
-        let errorMessage = "Unknown error"
+        let msg = res.statusText
+
         try {
             const json = await res.json()
-            errorMessage = json.message || JSON.stringify(json)
+            msg = json?.message || msg
         } catch { }
 
-        throw {
-            status: res.status,
-            message: errorMessage,
-        }
+        throw new Error(`API Error ${res.status}: ${msg}`)
     }
 
     // Auto-parse JSON
