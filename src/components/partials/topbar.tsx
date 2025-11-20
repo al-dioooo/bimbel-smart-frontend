@@ -1,18 +1,14 @@
 import { Bell, Search, User } from "@/components/icons/outline"
+import GlobalSearch from "@/components/global-search"
+import { ProgressiveBlur } from "@/components/progressive-blur"
 
 export default function Topbar() {
     return (
-        <div className="p-4 flex justify-between sticky top-0 bg-white/20 backdrop-blur-sm rounded-t-xl space-x-8">
+        <div className="px-4 pb-4 pt-7 flex justify-between sticky top-0 space-x-8 z-10">
+            <ProgressiveBlur className="w-full -z-10 rounded-t-xl" height="150%" position="top" />
             {/* Search Bar */}
             <div className="flex-1 grow">
-                <button className="inline-flex rounded-xl justify-center border border-neutral-200 bg-white/80 px-6 py-3 w-full">
-                    <div className="inline-flex items-center space-x-2">
-                        <span>
-                            <Search className="w-4 h-4" />
-                        </span>
-                        <span className="text-xs">Search</span>
-                    </div>
-                </button>
+                <GlobalSearch from="top" />
             </div>
             {/* Notifications and Profile */}
             <div className="flex items-center space-x-2">

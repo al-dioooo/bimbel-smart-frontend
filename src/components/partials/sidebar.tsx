@@ -38,6 +38,9 @@ export default function Sidebar({ }: Props) {
                         <SidebarLink type="sublink" label="Mentor" href="/data/mentor" activePath="/data/mentor" exact />
                         <SidebarLink type="sublink" label="Siswa" href="/data/siswa" activePath="/data/siswa" exact />
                     </li>
+                    <li>
+                        <SidebarLink type="main" label="Report" href="/report" icon={<Database className="w-5 h-5" />} activePath="/report" />
+                    </li>
                 </ul>
             </nav>
         </div>

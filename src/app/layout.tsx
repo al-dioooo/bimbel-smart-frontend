@@ -1,8 +1,11 @@
 import type { Metadata } from "next"
 import { Poppins } from "next/font/google"
 import "./globals.css"
-import Sidebar from "@/components/partials/sidebar";
-import Topbar from "@/components/partials/topbar";
+
+import Sidebar from "@/components/partials/sidebar"
+import Topbar from "@/components/partials/topbar"
+import Providers from "@/components/providers"
+import { ProgressiveBlur } from "@/components/progressive-blur"
 
 const poppinsSans = Poppins({
     weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"]
@@ -17,15 +20,17 @@ export default function RootLayout({ children }: Readonly<{ children: React.Reac
     return (
         <html lang="en">
             <body className={`${poppinsSans.className} antialiased bg-neutral-50`}>
-                <div className="flex">
-                    <Sidebar />
-                    <div className="ml-72 flex flex-col w-full bg-white min-h-screen m-3 rounded-xl">
-                        <Topbar />
-                        <div className="p-4">
-                            {children}
+                <Providers>
+                    <div className="flex">
+                        <Sidebar />
+                        <div className="ml-72 flex flex-col w-full bg-white min-h-screen mx-3 rounded-xl">
+                            <Topbar />
+                            <div className="px-4 pb-4 pt-8">
+                                {children}
+                            </div>
                         </div>
                     </div>
-                </div>
+                </Providers>
             </body>
         </html>
     );
