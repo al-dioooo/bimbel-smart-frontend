@@ -1,6 +1,6 @@
 // import Calendar from "@/components/calendar"
 import JadwalDashboard from "@/components/jadwalDashboard"
-import Calendar from "@/components/calendar"
+import Calendar from "@/components/full-calendar"
 
 export default function Jadwal() {
     return (

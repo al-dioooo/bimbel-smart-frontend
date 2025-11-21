@@ -88,12 +88,12 @@ export default function FullCalendar() {
     const handleNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
 
     // SELECTION HELPERS
-    
+
     // 1. Handle Date Click
     const handleDateClick = (day: number, monthOffset: number = 0) => {
         const newDate = new Date(year, month + monthOffset, day);
         setSelectedDate(newDate);
-        
+
         if (monthOffset !== 0) {
             setCurrentDate(new Date(year, month + monthOffset, 1));
         }
@@ -124,20 +124,20 @@ export default function FullCalendar() {
     const getEventsForDay = (day: number, currentMonthOffset: number = 0) => {
         const targetDate = new Date(year, month + currentMonthOffset, day);
         const dateStr = `${targetDate.getFullYear()}-${(targetDate.getMonth() + 1).toString().padStart(2, '0')}-${targetDate.getDate().toString().padStart(2, '0')}`;
-        
+
         const dayData = mockData.find(d => d.date === dateStr);
         return dayData ? dayData.events : [];
     };
 
     // Shared Cell Styling
-    const cellBaseClasses = "border border-neutral-300 min-h-[120px] p-2 flex flex-col items-start justify-start cursor-pointer transition-all duration-200";
+    const cellBaseClasses = "min-h-[120px] p-2 flex flex-col items-start justify-start cursor-pointer transition-all duration-200";
 
     return (
         <div className="bg-white w-full p-6 border border-neutral-300 rounded-xl flex flex-col h-full">
             {/* Header */}
             <div className="flex justify-between items-center mb-6">
                 <div className="flex items-center gap-4">
-                     <div className="flex gap-1">
+                    <div className="flex gap-1">
                         <button onClick={handlePrevMonth} className="p-1 bg-sky-500 hover:scale-110 text-white rounded-md transition">
                             <ChevronLeft className='w-5 h-5' />
                         </button>
@@ -149,16 +149,18 @@ export default function FullCalendar() {
                         {monthNames[month]} {year}
                     </h2>
                 </div>
-               
+
                 <button className="flex items-center gap-2 px-4 py-2 text-sky-500 border border-sky-500 rounded-full text-sm font-semibold">
                     <InfoIcon className="w-5 h-5" />
                     <span>Lihat Detail</span>
                 </button>
             </div>
 
-            <div className="rounded-xl overflow-hidden">
-                 {/* Weekday Labels */}
-                <div className="grid grid-cols-7 text-center border border-neutral-300 bg-sky-100">
+            {JSON.stringify(selectedDate)}
+
+            <div className="rounded-xl overflow-hidden border border-neutral-300">
+                {/* Weekday Labels */}
+                <div className="grid grid-cols-7 text-center border-b border-neutral-300 bg-sky-100">
                     {dayNames.map((day) => (
                         <div key={day} className="py-3 text-sm font-semibold text-neutral-500">
                             {day}
@@ -167,26 +169,27 @@ export default function FullCalendar() {
                 </div>
 
                 {/* Calendar Grid */}
-                <div className="grid grid-cols-7">
+                <div className="grid grid-cols-7 bg-neutral-300 gap-[1px]">
                     {/* Previous Month Days */}
                     {prevMonthDays.map((day) => {
-                         const events = getEventsForDay(day, -1);
-                         return (
-                        <div 
-                            key={`prev-${day}`} 
-                            onClick={() => handleDateClick(day, -1)}
-                            className={`${cellBaseClasses} text-neutral-300 bg-neutral-100 hover:bg-sky-50 `}
-                        >
-                            <span className="text-sm font-medium">{day}</span>
-                             <div className="flex flex-col gap-1 mt-2 w-full">
-                                {events.map(event => (
-                                    <div key={event.id} className="bg-neutral-200 text-neutral-500 text-[10px] px-2 py-1 rounded-md truncate">
-                                        {event.title}
-                                    </div>
-                                ))}
+                        const events = getEventsForDay(day, -1);
+                        return (
+                            <div
+                                key={`prev-${day}`}
+                                onClick={() => handleDateClick(day, -1)}
+                                className={`${cellBaseClasses} text-neutral-300 bg-neutral-100 hover:bg-sky-50 `}
+                            >
+                                <span className="text-sm font-medium">{day}</span>
+                                <div className="flex flex-col gap-1 mt-2 w-full">
+                                    {events.map(event => (
+                                        <div key={event.id} className="bg-neutral-200 text-neutral-500 text-[10px] px-2 py-1 rounded-md truncate">
+                                            {event.title}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    )})}
+                        )
+                    })}
 
                     {/* Current Month Days */}
                     {currentMonthDays.map((day) => {
@@ -195,24 +198,15 @@ export default function FullCalendar() {
                         const events = getEventsForDay(day);
 
                         return (
-                            <div 
-                                key={`curr-${day}`} 
-                                onClick={() => handleDateClick(day)}
-                                className={`${cellBaseClasses} bg-white hover:bg-sky-50 
-                                ${today ? 'bg-sky-50' : 'bg-white'} 
-                                ${selected ? 'bg-sky-100' : 'bg-white'}`}
-                            >
+                            <div key={`curr-${day}`} onClick={() => handleDateClick(day)} className={`${cellBaseClasses} ${selected ? 'bg-sky-50 hover:bg-sky-100' : (today ? 'bg-sky-100 hover:bg-sky-200' : 'bg-white hover:bg-sky-50')}`}>
+                                {JSON.stringify(selected)}
                                 <span className={`text-sm font-medium ${today ? 'text-sky-500' : 'text-neutral-500'}`}>
                                     {day}
                                 </span>
-                                
+
                                 <div className="flex flex-col gap-1 mt-2 w-full overflow-y-auto">
                                     {events.map(event => (
-                                        <div 
-                                            key={event.id} 
-                                            className="bg-linear-to-r from-sky-200 to-sky-50 text-sky-500 text-[10px] font-semibold px-3 py-1.5 rounded-full truncate w-full text-left"
-                                            title={event.title}
-                                        >
+                                        <div key={event.id} className="bg-linear-to-r from-sky-200 to-sky-50 text-sky-500 text-[10px] font-semibold px-3 py-1.5 rounded-full truncate w-full text-left" title={event.title}>
                                             {event.title}
                                         </div>
                                     ))}
@@ -226,22 +220,23 @@ export default function FullCalendar() {
                         const events = getEventsForDay(day, 1);
                         const selected = isSelected(day, 1);
                         return (
-                        <div 
-                            key={`next-${day}`} 
-                            onClick={() => handleDateClick(day, 1)}
-                            className={`${cellBaseClasses} text-neutral-300 bg-neutral-100 hover:bg-sky-50 
+                            <div
+                                key={`next-${day}`}
+                                onClick={() => handleDateClick(day, 1)}
+                                className={`${cellBaseClasses} text-neutral-300 bg-neutral-100 hover:bg-sky-50 
                             ${selected ? 'ring-2 ring-inset ring-sky-500 z-10' : ''}`}
-                        >
-                            <span className="text-sm font-medium">{day}</span>
-                              <div className="flex flex-col gap-1 mt-2 w-full">
-                                {events.map(event => (
-                                    <div key={event.id} className="bg-neutral-200 text-neutral-500 text-[10px] px-2 py-1 rounded-md truncate">
-                                        {event.title}
-                                    </div>
-                                ))}
+                            >
+                                <span className="text-sm font-medium">{day}</span>
+                                <div className="flex flex-col gap-1 mt-2 w-full">
+                                    {events.map(event => (
+                                        <div key={event.id} className="bg-neutral-200 text-neutral-500 text-[10px] px-2 py-1 rounded-md truncate">
+                                            {event.title}
+                                        </div>
+                                    ))}
+                                </div>
                             </div>
-                        </div>
-                    )})}
+                        )
+                    })}
                 </div>
             </div>
         </div>
