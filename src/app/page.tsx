@@ -13,7 +13,7 @@ export default function Dashboard() {
             {/* Title */}
             {/* <h1 className="text-3xl font-semibold">Dashboard</h1> */}
             <div className="flex space-x-4 items-stretch">
-                <div className="space-y-4 w-2/3 flex flex-col">
+                <div className="space-y-4 w-9/12 flex flex-col">
                     <div className="grid grid-cols-3 gap-4">
                         <DashboardCard icon={<Users className="w-8 h-8 text-sky-500" strokeWidth={2} />} label="Murid" value="0" color="sky" />
                         <DashboardCard icon={<Users className="w-8 h-8 text-yellow-500" strokeWidth={2} />} label="Kehadiran Murid" value="0" color="yellow" />
@@ -27,7 +27,7 @@ export default function Dashboard() {
                         <PengajuanDashboard />
                     </div>
                 </div>
-                <div className="space-y-4 w-1/3 flex flex-col">
+                <div className="space-y-4 w-3/12 flex flex-col">
                     <div className="">
                         <MiniCalendar />
                     </div>
