@@ -31,7 +31,9 @@ export default function FullCalendar() {
         return [
             {
                 date: `${year}-${monthStr}-01`,
-                events: [{ id: 'e1', title: 'Kelas 5 A' }, { id: 'e2', title: 'Kelas 8 A' }]
+                events: [
+                    { id: 'e1', title: 'Kelas 5 A' },
+                    { id: 'e2', title: 'Kelas 8 A' }]
             },
             {
                 date: `${year}-${monthStr}-02`,
@@ -42,8 +44,11 @@ export default function FullCalendar() {
                 ]
             },
             {
-                date: `${year}-${monthStr}-15`,
-                events: [{ id: 'e6', title: 'Rapat Guru' }]
+                date: `${year}-${monthStr}-21`,
+                events: [
+                    { id: 'e3', title: 'Kelas 6 B' },
+                    { id: 'e4', title: 'Kelas 8 B' }
+                ]
             },
         ];
     }, [year, month]);
@@ -156,8 +161,6 @@ export default function FullCalendar() {
                 </button>
             </div>
 
-            {JSON.stringify(selectedDate)}
-
             <div className="rounded-xl overflow-hidden border border-neutral-300">
                 {/* Weekday Labels */}
                 <div className="grid grid-cols-7 text-center border-b border-neutral-300 bg-sky-100">
@@ -198,9 +201,8 @@ export default function FullCalendar() {
                         const events = getEventsForDay(day);
 
                         return (
-                            <div key={`curr-${day}`} onClick={() => handleDateClick(day)} className={`${cellBaseClasses} ${selected ? 'bg-sky-50 hover:bg-sky-100' : (today ? 'bg-sky-100 hover:bg-sky-200' : 'bg-white hover:bg-sky-50')}`}>
-                                {JSON.stringify(selected)}
-                                <span className={`text-sm font-medium ${today ? 'text-sky-500' : 'text-neutral-500'}`}>
+                            <div key={`curr-${day}`} onClick={() => handleDateClick(day)} className={`${cellBaseClasses} ${selected ? 'bg-sky-100 hover:bg-sky-100' : (today ? 'bg-sky-50 hover:bg-sky-50' : 'bg-white hover:bg-sky-50')}`}>
+                                <span className={`text-sm font-medium ${today ? 'text-sky-500' : (selected ? 'text-black' : 'text-neutral-300')}`}>
                                     {day}
                                 </span>
 
