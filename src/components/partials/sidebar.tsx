@@ -20,9 +20,7 @@ export default function Sidebar({ }: Props) {
                         <SidebarLink type="main" label="Dashboard" href="/" icon={<SmartHome className="w-5 h-5" />} activePath="/" exact />
                     </li>
                     <li className="flex-1">
-                        <SidebarLink type="main" label="Absensi" href="/absensi" icon={<Book className="w-5 h-5" />} activePath="/absensi" />
-                        <SidebarLink type="sublink" label="List" href="/absensi" activePath="/absensi" exact />
-                        <SidebarLink type="sublink" label="Rekap" href="/absensi/rekap" activePath="/absensi/rekap" exact />
+                        <SidebarLink type="main" label="Absensi" href="/absensi" icon={<Book className="w-5 h-5" />} activePath="/absensi" exact />
                     </li>
                     <li className="flex-1">
                         <SidebarLink type="main" label="Jadwal" href="/jadwal" icon={<Calendar className="w-5 h-5" />} activePath="/jadwal" />
@@ -40,6 +38,8 @@ export default function Sidebar({ }: Props) {
                     </li>
                     <li>
                         <SidebarLink type="main" label="Report" href="/report" icon={<Database className="w-5 h-5" />} activePath="/report" />
+                        <SidebarLink type="sublink" label="Absensi" href="/report/absensi" activePath="/report/absensi" exact />
+                        <SidebarLink type="sublink" label="Gaji" href="/report/gaji" activePath="/report/gaji" exact />
                     </li>
                 </ul>
             </nav>
