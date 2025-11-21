@@ -1,4 +1,5 @@
 'use client';
+import moment from "moment";
 import { useState, useEffect } from "react";
 
 interface EventItem {
@@ -17,7 +18,7 @@ interface ScheduleDay {
 // --- DATA DUMMY
 const mockScheduleData: ScheduleDay[] = [
     {
-        date: "1 Oktober",
+        date: moment().format("D MMMM"),
         events: [
             {
                 teacher: "RINJANI ORYZA SATIVA S.Pd",
@@ -34,7 +35,7 @@ const mockScheduleData: ScheduleDay[] = [
         ]
     },
     {
-        date: "2 Oktober",
+        date: moment().add(1, 'd').format("D MMMM"),
         events: [
             {
                 teacher: "RINJANI ORYZA SATIVA S.Pd",
@@ -53,11 +54,11 @@ const mockScheduleData: ScheduleDay[] = [
                 time: "19:00 - 21.00",
                 class: "Kelas 7",
                 statusColor: "text-sky-500"
-            }
+            },
         ]
     },
     {
-        date: "3 Oktober",
+        date: moment().add(2, 'd').format("D MMMM"),
         events: [
             {
                 teacher: "RINJANI ORYZA SATIVA S.Pd",

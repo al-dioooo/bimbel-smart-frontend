@@ -12,8 +12,8 @@ export default function Dashboard() {
         <div className="space-y-8">
             {/* Title */}
             {/* <h1 className="text-3xl font-semibold">Dashboard</h1> */}
-            <div className="flex space-x-4">
-                <div className="space-y-4 w-2/3">
+            <div className="flex space-x-4 items-stretch">
+                <div className="space-y-4 w-2/3 flex flex-col">
                     <div className="grid grid-cols-3 gap-4">
                         <DashboardCard icon={<Users className="w-8 h-8 text-sky-500" strokeWidth={2} />} label="Murid" value="0" color="sky" />
                         <DashboardCard icon={<Users className="w-8 h-8 text-yellow-500" strokeWidth={2} />} label="Kehadiran Murid" value="0" color="yellow" />
@@ -23,18 +23,15 @@ export default function Dashboard() {
                         <PieChart />
                         <BarChart />
                     </div>
-                    <div className="">
+                    <div className="h-full">
                         <PengajuanDashboard />
                     </div>
-                    <div className="">
-                        {/* <Calendar /> */}
-                    </div>
                 </div>
-                <div className="space-y-4 w-1/3 max-h-full">
+                <div className="space-y-4 w-1/3 flex flex-col">
                     <div className="">
                         <MiniCalendar />
                     </div>
-                    <div className="">
+                    <div className="h-full">
                         <JadwalDashboard />
                     </div>
                 </div>

@@ -53,6 +53,42 @@ export default function PengajuanDashboard() {
             description: "Penambahan Jadwal 4 Oktober 2025",
             status: "Ditolak",
             color: "red"
+        },
+        {
+            id: 4,
+            description: "Perubahan Jadwal 6 Oktober 2025",
+            status: "Disetujui",
+            color: "emerald"
+        },
+        {
+            id: 5,
+            description: "Penambahan Jadwal 18 Oktober 2025",
+            status: "Menunggu",
+            color: "amber"
+        },
+        {
+            id: 6,
+            description: "Penambahan Jadwal 4 Oktober 2025",
+            status: "Ditolak",
+            color: "red"
+        },
+        {
+            id: 7,
+            description: "Perubahan Jadwal 6 Oktober 2025",
+            status: "Disetujui",
+            color: "emerald"
+        },
+        {
+            id: 8,
+            description: "Penambahan Jadwal 18 Oktober 2025",
+            status: "Menunggu",
+            color: "amber"
+        },
+        {
+            id: 9,
+            description: "Penambahan Jadwal 4 Oktober 2025",
+            status: "Ditolak",
+            color: "red"
         }
     ];
 
