@@ -40,6 +40,8 @@ export default function FullCalendar() {
                 events: [
                     { id: 'e3', title: 'Kelas 6 B' },
                     { id: 'e4', title: 'Kelas 8 B' },
+                    { id: 'e5', title: 'Kelas 7 A' },
+                    { id: 'e5', title: 'Kelas 7 A' },
                     { id: 'e5', title: 'Kelas 7 A' }
                 ]
             },
@@ -135,7 +137,7 @@ export default function FullCalendar() {
     };
 
     // Shared Cell Styling
-    const cellBaseClasses = "min-h-[120px] p-2 flex flex-col items-start justify-start cursor-pointer transition-all duration-200";
+    const cellBaseClasses = "min-h-[120px] max-h-[120px] overflow-hidden flex flex-col items-start justify-start cursor-pointer transition-all duration-200";
 
     return (
         <div className="bg-white w-full p-6 border border-neutral-300 rounded-xl flex flex-col h-full">
@@ -182,8 +184,8 @@ export default function FullCalendar() {
                                 onClick={() => handleDateClick(day, -1)}
                                 className={`${cellBaseClasses} text-neutral-300 bg-neutral-100 hover:bg-sky-50 `}
                             >
-                                <span className="text-sm font-medium">{day}</span>
-                                <div className="flex flex-col gap-1 mt-2 w-full">
+                                <span className="pl-2 pt-2 text-sm font-medium">{day}</span>
+                                <div className="px-2 pb-2 flex flex-col gap-1 mt-2 w-full">
                                     {events.map(event => (
                                         <div key={event.id} className="bg-neutral-200 text-neutral-500 text-[10px] px-2 py-1 rounded-md truncate">
                                             {event.title}
@@ -202,11 +204,11 @@ export default function FullCalendar() {
 
                         return (
                             <div key={`curr-${day}`} onClick={() => handleDateClick(day)} className={`${cellBaseClasses} ${selected ? 'bg-sky-100 hover:bg-sky-100' : (today ? 'bg-sky-50 hover:bg-sky-50' : 'bg-white hover:bg-sky-50')}`}>
-                                <span className={`text-sm font-medium ${today ? 'text-sky-500' : (selected ? 'text-black' : 'text-neutral-300')}`}>
+                                <span className={`text-sm font-medium pl-2 pt-2 ${today ? 'text-sky-500' : (selected ? 'text-black' : 'text-neutral-300')}`}>
                                     {day}
                                 </span>
 
-                                <div className="flex flex-col gap-1 mt-2 w-full overflow-y-auto">
+                                <div className="px-2 pb-2 space-y-1 mt-2 w-full overflow-y-auto">
                                     {events.map(event => (
                                         <div key={event.id} className="bg-linear-to-r from-sky-200 to-sky-50 text-sky-500 text-[10px] font-semibold px-3 py-1.5 rounded-full truncate w-full text-left" title={event.title}>
                                             {event.title}
@@ -228,8 +230,8 @@ export default function FullCalendar() {
                                 className={`${cellBaseClasses} text-neutral-300 bg-neutral-100 hover:bg-sky-50 
                             ${selected ? 'ring-2 ring-inset ring-sky-500 z-10' : ''}`}
                             >
-                                <span className="text-sm font-medium">{day}</span>
-                                <div className="flex flex-col gap-1 mt-2 w-full">
+                                <span className="text-sm font-medium pl-2 pt-2">{day}</span>
+                                <div className="px-2 pb-2 flex flex-col gap-1 mt-2 w-full">
                                     {events.map(event => (
                                         <div key={event.id} className="bg-neutral-200 text-neutral-500 text-[10px] px-2 py-1 rounded-md truncate">
                                             {event.title}
