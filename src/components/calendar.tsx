@@ -1,191 +1,249 @@
-    'use client';
-    import { useState, useEffect } from 'react';
-    import { ChevronLeft, ChevronRight } from '@/components/icons/outline';
+"use client";
+import { useState, useMemo } from 'react';
+import { ChevronLeft, ChevronRight } from '@/components/icons/outline';
 
-    interface CalendarEvent {
+export interface CalendarEvent {
     id: string;
     title: string;
-    color: 'sky';
-    date: string; // Format YYYY-MM-DD
-    }
+}
 
-    interface CalendarDay {
-    dateObj: Date;       
-    dayNumber: number;   
-    fullDate: string;    
-    isCurrentMonth: boolean;
+interface DayData {
+    date: string;
     events: CalendarEvent[];
-    }
+}
 
-    // --- MOCK DATA (Database Dummy) ---
-    // Nanti data ini yang di-replace dengan hasil fetch API
-    const mockEventsDatabase: CalendarEvent[] = [
-    { id: '1', title: 'Kelas 5 A', date: '2025-10-01', color: 'sky' },
-    { id: '2', title: 'Kelas 8 A', date: '2025-10-01', color: 'sky' },
-    { id: '3', title: 'Kelas 6 B', date: '2025-10-02', color: 'sky' },
-    { id: '4', title: 'Kelas 8 B', date: '2025-10-02', color: 'sky' },
-    { id: '5', title: 'Kelas 7 A', date: '2025-10-02', color: 'sky' },
-    { id: '6', title: 'Kelas 5 A', date: '2025-10-15', color: 'sky' },
-    { id: '7', title: 'Kelas 9 B', date: '2025-11-01', color: 'sky' },
-    ];
+// ICON
+const InfoIcon = ({ className }: { className?: string }) => (
+    <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" className={className}>
+        <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+    </svg>
+);
 
-    // --- HELPER COMPONENTS ---
-    const EventPill = ({ title, color = 'sky' }: { title: string, color?: string }) => {
-    const colorClasses: Record<string, string> = {
-        sky: 'bg-linear-to-r from-sky-200 to-sky-50 text-sky-500 hover:text-sky-700',
-    };
-
-    const selectedColor = colorClasses[color] || colorClasses.sky;
-
-    return (
-        <div className={`w-full px-2 py-1 rounded-full text-[10px] font-semibold cursor-pointer transition-colors truncate ${selectedColor}`}>
-        {title}
-        </div>
-    );
-    };
-
-    // --- ICONS ---
-    const DetailIcon = () => (
-        <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>
-    );
-
-    // --- MAIN COMPONENT ---
-    export default function Calendar() {
-    const [currentDate, setCurrentDate] = useState(new Date(2025, 9, 1));
-    const [calendarGrid, setCalendarGrid] = useState<CalendarDay[]>([]);
-
-    // State Data Event (Simulasi fetch)
-    const [events, setEvents] = useState<CalendarEvent[]>([]);
-
-    // Helpers Navigasi
+export default function FullCalendar() {
+    const [currentDate, setCurrentDate] = useState(new Date());
+    const [selectedDate, setSelectedDate] = useState<Date>(new Date());
     const year = currentDate.getFullYear();
     const month = currentDate.getMonth();
-    
-    const monthNames = ["Januari", "Februari", "Maret", "April", "Mei", "Juni", "Juli", "Agustus", "September", "Oktober", "November", "Desember"];
 
-    // --- LOGIC 1: FETCH DATA (Simulasi) ---
-    useEffect(() => {
-        // Di sini nanti fetch API berdasarkan bulan & tahun
-        // const fetchEvents = async () => { const res = await fetch(...); setEvents(res.data); }
-        
-        setEvents(mockEventsDatabase);
-    }, [month, year]); 
+    // MOCK DATA
+    const mockData: DayData[] = useMemo(() => {
+        const monthStr = (month + 1).toString().padStart(2, '0');
+        return [
+            {
+                date: `${year}-${monthStr}-01`,
+                events: [{ id: 'e1', title: 'Kelas 5 A' }, { id: 'e2', title: 'Kelas 8 A' }]
+            },
+            {
+                date: `${year}-${monthStr}-02`,
+                events: [
+                    { id: 'e3', title: 'Kelas 6 B' },
+                    { id: 'e4', title: 'Kelas 8 B' },
+                    { id: 'e5', title: 'Kelas 7 A' }
+                ]
+            },
+            {
+                date: `${year}-${monthStr}-15`,
+                events: [{ id: 'e6', title: 'Rapat Guru' }]
+            },
+        ];
+    }, [year, month]);
 
-    // --- LOGIC 2: GENERATE GRID KALENDER ---
-    useEffect(() => {
-        const generateCalendarGrid = () => {
-        const firstDayOfMonth = new Date(year, month, 1).getDay();
-        // Adjust: Minggu(0) jadi 6, Senin(1) jadi 0 agar kalender mulai Senin
-        const startingDayIndex = firstDayOfMonth === 0 ? 6 : firstDayOfMonth - 1;
-        
-        const daysInMonth = new Date(year, month + 1, 0).getDate();
-        
-        // Total kotak grid (biasanya 35 atau 42 agar rapi)
-        // Kita pakai logic sederhana: ambil tanggal start grid (bisa bulan sebelumnya)
-        const startDateGrid = new Date(year, month, 1);
-        startDateGrid.setDate(startDateGrid.getDate() - startingDayIndex);
 
-        const newGrid: CalendarDay[] = [];
+    // CALENDAR LOGIC
+    const monthNames = [
+        "Januari", "Februari", "Maret", "April", "Mei", "Juni",
+        "Juli", "Agustus", "September", "Oktober", "November", "Desember"
+    ];
+    const dayNames = ["Senin", "Selasa", "Rabu", "Kamis", "Jumat", "Sabtu", "Minggu"];
 
-        // Loop 42 kali (6 baris x 7 kolom) untuk mengisi grid
-        for (let i = 0; i < 42; i++) {
-            const currentDayLoop = new Date(startDateGrid);
-            currentDayLoop.setDate(startDateGrid.getDate() + i);
+    const getDaysInMonth = (year: number, month: number) => new Date(year, month + 1, 0).getDate();
+    const getFirstDayOfMonth = (year: number, month: number) => {
+        const day = new Date(year, month, 1).getDay();
+        return day === 0 ? 6 : day - 1;
+    };
 
-            // Format YYYY-MM-DD (penting untuk matching event)
-            const y = currentDayLoop.getFullYear();
-            const m = String(currentDayLoop.getMonth() + 1).padStart(2, '0');
-            const d = String(currentDayLoop.getDate()).padStart(2, '0');
-            const fullDateString = `${y}-${m}-${d}`;
+    const daysInMonth = getDaysInMonth(year, month);
+    const firstDay = getFirstDayOfMonth(year, month);
 
-            // Cari event yang tanggalnya cocok
-            const dayEvents = events.filter(evt => evt.date === fullDateString);
+    const prevMonthDays = [];
+    const daysInPrevMonth = getDaysInMonth(year, month - 1);
+    for (let i = firstDay - 1; i >= 0; i--) {
+        prevMonthDays.push(daysInPrevMonth - i);
+    }
 
-            newGrid.push({
-            dateObj: currentDayLoop,
-            dayNumber: currentDayLoop.getDate(),
-            fullDate: fullDateString,
-            isCurrentMonth: currentDayLoop.getMonth() === month,
-            events: dayEvents
-            });
-        }
+    const currentMonthDays = [];
+    for (let i = 1; i <= daysInMonth; i++) {
+        currentMonthDays.push(i);
+    }
 
-        setCalendarGrid(newGrid);
-        };
+    const nextMonthDays = [];
+    const totalSlots = 42;
+    const remainingSlots = totalSlots - (prevMonthDays.length + currentMonthDays.length);
+    for (let i = 1; i <= remainingSlots; i++) {
+        nextMonthDays.push(i);
+    }
 
-        generateCalendarGrid();
-    }, [currentDate, events, month, year]);
-
-    // Handlers
+    // NAVIGATION HANDLERS
     const handlePrevMonth = () => setCurrentDate(new Date(year, month - 1, 1));
     const handleNextMonth = () => setCurrentDate(new Date(year, month + 1, 1));
 
-    return (
-        <div className="w-full h-full bg-white rounded-3xl border border-neutral-300 p-6 flex flex-col">
+    // SELECTION HELPERS
+    
+    // 1. Handle Date Click
+    const handleDateClick = (day: number, monthOffset: number = 0) => {
+        const newDate = new Date(year, month + monthOffset, day);
+        setSelectedDate(newDate);
         
-        {/* --- HEADER --- */}
-        <div className="flex justify-between items-center mb-6 flex-none">
-            <div className="flex items-center gap-4">
-            {/* Navigasi */}
-            <div className="flex gap-2">
-                <button onClick={handlePrevMonth} className="p-2 bg-sky-500 rounded-lg text-white hover:scale-110">
-                    <ChevronLeft />
-                </button>
-                <button onClick={handleNextMonth} className="p-2 bg-sky-500 rounded-lg text-white hover:scale-110">
-                    <ChevronRight />
-                </button>
-            </div>
-            
-            {/* Judul Bulan Tahun */}
-            <h2 className="text-xl font-semibold text-black">
-                {monthNames[month]} {year}
-            </h2>
-            </div>
+        if (monthOffset !== 0) {
+            setCurrentDate(new Date(year, month + monthOffset, 1));
+        }
+    };
 
-            <button className="flex items-center gap-2 px-4 py-2 border border-sky-500 text-sky-500 rounded-full text-sm font-semibold hover:bg-sky-50 transition">
-            <DetailIcon />
-            Lihat Detail
-            </button>
-        </div>
+    // 2. Check if a specific day is the one currently selected
+    const isSelected = (day: number, monthOffset: number = 0) => {
+        const targetDate = new Date(year, month + monthOffset, day);
+        return (
+            targetDate.getDate() === selectedDate.getDate() &&
+            targetDate.getMonth() === selectedDate.getMonth() &&
+            targetDate.getFullYear() === selectedDate.getFullYear()
+        );
+    };
 
-        {/* --- GRID CONTENT --- */}
-        <div className="border border-neutral-300 rounded-xl overflow-hidden flex-1 flex flex-col min-h-0">
-            
-            {/* Header Nama Hari (Senin - Minggu) */}
-            <div className="grid grid-cols-7 bg-sky-50 divide-x divide-neutral-200 border-b border-neutral-300">
-            {['Senin', 'Selasa', 'Rabu', 'Kamis', 'Jumat', 'Sabtu', 'Minggu'].map((day) => (
-                <div key={day} className="py-3 text-center text-neutral-500 text-sm font-semibold">
-                {day}
+    // 3. Check if today
+    const isToday = (day: number, monthOffset: number = 0) => {
+        const today = new Date();
+        const targetDate = new Date(year, month + monthOffset, day);
+        return (
+            targetDate.getDate() === today.getDate() &&
+            targetDate.getMonth() === today.getMonth() &&
+            targetDate.getFullYear() === today.getFullYear()
+        );
+    };
+
+    // --- Data Retrieval Helper ---
+    const getEventsForDay = (day: number, currentMonthOffset: number = 0) => {
+        const targetDate = new Date(year, month + currentMonthOffset, day);
+        const dateStr = `${targetDate.getFullYear()}-${(targetDate.getMonth() + 1).toString().padStart(2, '0')}-${targetDate.getDate().toString().padStart(2, '0')}`;
+        
+        const dayData = mockData.find(d => d.date === dateStr);
+        return dayData ? dayData.events : [];
+    };
+
+    // Shared Cell Styling
+    const cellBaseClasses = "border border-neutral-300 min-h-[120px] p-2 flex flex-col items-start justify-start cursor-pointer transition-all duration-200";
+
+    return (
+        <div className="bg-white w-full p-6 border border-neutral-300 rounded-xl flex flex-col h-full">
+            {/* Header */}
+            <div className="flex justify-between items-center mb-6">
+                <div className="flex items-center gap-4">
+                     <div className="flex gap-1">
+                        <button onClick={handlePrevMonth} className="p-1 bg-sky-500 hover:scale-110 text-white rounded-md transition">
+                            <ChevronLeft className='w-5 h-5' />
+                        </button>
+                        <button onClick={handleNextMonth} className="p-1 bg-sky-500 hover:scale-110 text-white rounded-md transition">
+                            <ChevronRight className='w-5 h-5' />
+                        </button>
+                    </div>
+                    <h2 className="text-xl font-semibold text-black">
+                        {monthNames[month]} {year}
+                    </h2>
                 </div>
-            ))}
+               
+                <button className="flex items-center gap-2 px-4 py-2 text-sky-500 border border-sky-500 rounded-full text-sm font-semibold">
+                    <InfoIcon className="w-5 h-5" />
+                    <span>Lihat Detail</span>
+                </button>
             </div>
 
-            {/* Body Kalender */}
-            <div className="grid grid-cols-7 bg-white divide-x divide-y divide-neutral-200 flex-1 overflow-y-auto">
-            {calendarGrid.map((dayItem, index) => (
-                <div 
-                key={`${dayItem.fullDate}-${index}`} 
-                className={`min-h-[100px] p-2 flex flex-col transition-colors hover:bg-neutral-50
-                    ${!dayItem.isCurrentMonth ? 'bg-neutral-50/30 text-neutral-400' : 'bg-white text-neutral-700'}
-                `}
-                >
-                {/* Angka Tanggal */}
-                <span className={`text-sm font-normal mb-2 block
-                    ${!dayItem.isCurrentMonth ? 'text-neutral-300' : 'text-neutral-700'}
-                `}>
-                    {dayItem.dayNumber}
-                </span>
-
-                {/* Event List (Scrollable inside cell if too many) */}
-                <div className="flex flex-col gap-1 overflow-y-auto max-h-[80px] custom-scrollbar">
-                    {dayItem.events.map((evt) => (
-                    <EventPill key={evt.id} title={evt.title} color={evt.color} />
+            <div className="rounded-xl overflow-hidden">
+                 {/* Weekday Labels */}
+                <div className="grid grid-cols-7 text-center border border-neutral-300 bg-sky-100">
+                    {dayNames.map((day) => (
+                        <div key={day} className="py-3 text-sm font-semibold text-neutral-500">
+                            {day}
+                        </div>
                     ))}
                 </div>
+
+                {/* Calendar Grid */}
+                <div className="grid grid-cols-7">
+                    {/* Previous Month Days */}
+                    {prevMonthDays.map((day) => {
+                         const events = getEventsForDay(day, -1);
+                         return (
+                        <div 
+                            key={`prev-${day}`} 
+                            onClick={() => handleDateClick(day, -1)}
+                            className={`${cellBaseClasses} text-neutral-300 bg-neutral-100 hover:bg-sky-50 `}
+                        >
+                            <span className="text-sm font-medium">{day}</span>
+                             <div className="flex flex-col gap-1 mt-2 w-full">
+                                {events.map(event => (
+                                    <div key={event.id} className="bg-neutral-200 text-neutral-500 text-[10px] px-2 py-1 rounded-md truncate">
+                                        {event.title}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )})}
+
+                    {/* Current Month Days */}
+                    {currentMonthDays.map((day) => {
+                        const today = isToday(day);
+                        const selected = isSelected(day);
+                        const events = getEventsForDay(day);
+
+                        return (
+                            <div 
+                                key={`curr-${day}`} 
+                                onClick={() => handleDateClick(day)}
+                                className={`${cellBaseClasses} bg-white hover:bg-sky-50 
+                                ${today ? 'bg-sky-50' : 'bg-white'} 
+                                ${selected ? 'bg-sky-100' : 'bg-white'}`}
+                            >
+                                <span className={`text-sm font-medium ${today ? 'text-sky-500' : 'text-neutral-500'}`}>
+                                    {day}
+                                </span>
+                                
+                                <div className="flex flex-col gap-1 mt-2 w-full overflow-y-auto">
+                                    {events.map(event => (
+                                        <div 
+                                            key={event.id} 
+                                            className="bg-linear-to-r from-sky-200 to-sky-50 text-sky-500 text-[10px] font-semibold px-3 py-1.5 rounded-full truncate w-full text-left"
+                                            title={event.title}
+                                        >
+                                            {event.title}
+                                        </div>
+                                    ))}
+                                </div>
+                            </div>
+                        );
+                    })}
+
+                    {/* Next Month Days */}
+                    {nextMonthDays.map((day) => {
+                        const events = getEventsForDay(day, 1);
+                        const selected = isSelected(day, 1);
+                        return (
+                        <div 
+                            key={`next-${day}`} 
+                            onClick={() => handleDateClick(day, 1)}
+                            className={`${cellBaseClasses} text-neutral-300 bg-neutral-100 hover:bg-sky-50 
+                            ${selected ? 'ring-2 ring-inset ring-sky-500 z-10' : ''}`}
+                        >
+                            <span className="text-sm font-medium">{day}</span>
+                              <div className="flex flex-col gap-1 mt-2 w-full">
+                                {events.map(event => (
+                                    <div key={event.id} className="bg-neutral-200 text-neutral-500 text-[10px] px-2 py-1 rounded-md truncate">
+                                        {event.title}
+                                    </div>
+                                ))}
+                            </div>
+                        </div>
+                    )})}
                 </div>
-            ))}
             </div>
         </div>
-        </div>
     );
-    }
+}
