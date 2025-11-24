@@ -24,7 +24,8 @@ export default function Sidebar({ }: Props) {
                     </li>
                     <li className="flex-1">
                         <SidebarLink type="main" label="Jadwal" href="/jadwal" icon={<Calendar className="w-5 h-5" />} activePath="/jadwal" />
-                        <SidebarLink type="sublink" label="List" href="/jadwal" activePath="/jadwal" exact />
+                        <SidebarLink type="sublink" label="Calendar" href="/jadwal" activePath="/jadwal" exact />
+                        <SidebarLink type="sublink" label="List" href="/jadwal/list" activePath="/jadwal/list" exact />
                         <SidebarLink type="sublink" label="Pengajuan" href="/jadwal/pengajuan" activePath="/jadwal/pengajuan" exact />
                     </li>
                     <li className="flex-1">

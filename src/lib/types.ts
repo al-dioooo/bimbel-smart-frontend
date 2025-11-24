@@ -45,6 +45,13 @@ export interface Siswa {
     updated_at: string
 }
 
+export interface Pengajuan {
+    id: number
+    nama: string
+    created_at: string
+    status: string
+}
+
 export interface AuthToken {
     token: string
 }
