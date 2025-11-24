@@ -209,11 +209,11 @@ export default function ListSiswaPage() {
                                         <td className="px-6 py-4 text-xs font-medium text-neutral-900 whitespace-nowrap">
                                             {row.nama}
                                         </td>
-                                        <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
+                                        <td className="px-6 py-4 text-xs font-medium text-neutral-900 whitespace-nowrap">
                                             {row.kelas?.nama ?? '-'}
                                         </td>
-                                        <td className="px-6 py-4 text-xs font-medium text-neutral-900 whitespace-nowrap">
-                                            {row.kontak}
+                                        <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
+                                            {row.kontak ?? '-'}
                                         </td>
                                         <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
                                             {moment(row.created_at).format('MMMM D, YYYY')}
@@ -223,7 +223,7 @@ export default function ListSiswaPage() {
                                         </td>
                                         <td className="px-3 py-2 text-xs font-medium text-right whitespace-nowrap">
                                             <div className="inline-flex items-center space-x-2">
-                                                <MenuAction detailLink={`/data/siswa/${row.id}`} editLink={`/data/siswa/${row.id}/edit`} deleteLink="" />
+                                                <MenuAction showDetail={false} editLink={`/data/siswa/${row.id}/edit`} deleteLink="" />
                                             </div>
                                         </td>
                                     </tr>

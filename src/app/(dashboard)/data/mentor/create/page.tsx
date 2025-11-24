@@ -7,12 +7,11 @@ import Form from "../form"
 
 export default function CreateMentor() {
     const router = useRouter()
-
     const [errors, setErrors] = useState<any>({})
 
     const submitHandler = (data: any) => {
         api
-            .post("/mentor", data) // 🔧 adjust to your actual endpoint if needed
+            .post("/mentor", data)
             .then(() => {
                 router.push("/data/mentor")
             })

@@ -26,6 +26,7 @@ export interface Mentor {
     nik: string
     npwp: string
     kontak: string
+    alamat: string
     created_at: string
     updated_at: string
 }

@@ -12,6 +12,6 @@ export function useMentor(params: Record<string, unknown>) {
 }
 
 export function useMentorById(id: number | null) {
-    const { data, error, mutate } = useSWR<Mentor>(id ? `/mentor/${id}` : null, fetcher)
-    return { data, loading: id ? !error && !data : false, error, mutate }
+    const { data, isLoading, error, mutate } = useSWR<Mentor>(id ? `/mentor/${id}` : null, fetcher)
+    return { data, isLoading, error, mutate }
 }
