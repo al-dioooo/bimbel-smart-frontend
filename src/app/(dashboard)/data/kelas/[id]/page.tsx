@@ -1,24 +1,25 @@
 'use client'
 
-// import { swrFetcher } from "@/helpers/swr-fetcher"
-// import Link from "next/link"
 import moment from "moment"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useRef, useState } from "react"
+import { use, useEffect, useRef, useState } from "react"
 
 import { AutoHeight } from "@/components/auto-height"
 import { CircleDashedPlus, Search } from "@/components/icons/outline"
 import MenuAction from "@/components/menu-action"
 
 import OutlineButton from "@/components/buttons/outline"
-import { useMentor } from "@/hooks/repositories/use-mentor"
-import Filter from "./filter"
 import Pagination from "@/components/pagination"
 import { ChevronUpDown } from "@/components/icons/dynamic"
+import { useSiswa } from "@/hooks/repositories/use-siswa"
+import Filter from "../../siswa/filter"
+import { useKelasById } from "@/hooks/repositories/use-kelas"
 
-export default function ListMentorPage() {
+export default function DetailKelasPage({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter()
     const pathname = usePathname()
+
+    const { id } = use(params)
 
     // Query parameters
     const searchParams = useSearchParams()
@@ -35,8 +36,12 @@ export default function ListMentorPage() {
     const orderBy = searchParams.get('order_by')
     const direction = searchParams.get('direction')
 
-    const { data, mutate, error, isLoading, isValidating } = useMentor({
+    const { data, isLoading } = useKelasById(parseInt(id))
+
+    const { data: siswaData, mutate, error, isLoading: isLoadingSiswaData, isValidating } = useSiswa({
         page,
+
+        kelas_id: id,
 
         search,
         nama,
@@ -110,7 +115,7 @@ export default function ListMentorPage() {
     return (
         <div className="space-y-6">
             {/* Title */}
-            <h1 className="text-3xl font-semibold">List Mentor</h1>
+            <h1 className="text-3xl font-semibold">Data {data?.nama}</h1>
 
             <div className="space-y-6">
                 <div className="flex items-center justify-between text-xs">
@@ -123,9 +128,6 @@ export default function ListMentorPage() {
                         </div>
                         <Filter onSubmit={updateFilter} onRemove={removeFilter} data={Object.fromEntries(Object.entries({ nama, from, to }).filter(([_, v]) => v != null))} />
                     </div>
-                    <div className="flex items-center space-x-2">
-                        <OutlineButton as="link" href="/data/mentor/create" className="text-xs" icon={<CircleDashedPlus className="w-5 h-5" />}>Tambah Mentor</OutlineButton>
-                    </div>
                 </div>
                 <div className="overflow-x-auto border border-neutral-200 rounded-xl">
                     <AutoHeight>
@@ -133,9 +135,9 @@ export default function ListMentorPage() {
                             <thead className="bg-neutral-50 rounded-t-3xl">
                                 <tr>
                                     <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('users.name')}>
+                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('nama')}>
                                             <span>Nama</span>
-                                            <span><ChevronUpDown direction={orderBy === ('users.name') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
+                                            <span><ChevronUpDown direction={orderBy === ('nama') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
                                         </button>
                                     </th>
                                     <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
@@ -144,24 +146,12 @@ export default function ListMentorPage() {
                                             <span><ChevronUpDown direction={orderBy === ('kontak') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
                                         </button>
                                     </th>
-                                    <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('created_at')}>
-                                            <span>Dibuat Pada</span>
-                                            <span><ChevronUpDown direction={orderBy === ('created_at') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
-                                        </button>
-                                    </th>
-                                    <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('updated_at')}>
-                                            <span>Diubah Pada</span>
-                                            <span><ChevronUpDown direction={orderBy === ('updated_at') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
-                                        </button>
-                                    </th>
-                                    <th scope="col" className="relative px-6 py-3"><span className="sr-only">Action</span></th>
+                                    {/* <th scope="col" className="relative px-6 py-3"><span className="sr-only">Action</span></th> */}
                                 </tr>
                             </thead>
                             <tbody className="bg-white divide-y divide-neutral-200">
                                 {/* When loading */}
-                                {isLoading && (
+                                {isLoadingSiswaData && (
                                     <tr className="text-center">
                                         <td colSpan={100} className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
                                             <div className="flex items-center justify-between space-x-4">
@@ -183,7 +173,7 @@ export default function ListMentorPage() {
                                 )}
 
                                 {/* When there are no list available */}
-                                {data?.data?.length === 0 && !search && !isLoading && (
+                                {siswaData?.data?.length === 0 && !search && !isLoadingSiswaData && (
                                     <tr className="text-center">
                                         <td colSpan={100} className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
                                             <div className="flex items-center justify-between space-x-4">
@@ -194,7 +184,7 @@ export default function ListMentorPage() {
                                 )}
 
                                 {/* When there are no list available on searching */}
-                                {data?.data?.length === 0 && search && !isLoading && (
+                                {siswaData?.data?.length === 0 && search && !isLoadingSiswaData && (
                                     <tr className="text-center">
                                         <td colSpan={100} className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
                                             <div className="flex items-center justify-between space-x-4">
@@ -204,25 +194,19 @@ export default function ListMentorPage() {
                                     </tr>
                                 )}
 
-                                {(data && data.data && data.data.length > 0) && data.data.map((row) => (
+                                {(siswaData && siswaData.data && siswaData.data.length > 0) && siswaData.data.map((row) => (
                                     <tr key={row.id} className="hover:bg-neutral-50">
                                         <td className="px-6 py-4 text-xs font-medium text-neutral-900 whitespace-nowrap">
-                                            {row.user?.name}
+                                            {row.nama}
                                         </td>
                                         <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
                                             {row.kontak}
                                         </td>
-                                        <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            {moment(row.created_at).format('MMMM D, YYYY')}
-                                        </td>
-                                        <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            {moment(row.updated_at).format('MMMM D, YYYY')}
-                                        </td>
-                                        <td className="px-3 py-2 text-xs font-medium text-right whitespace-nowrap">
+                                        {/* <td className="px-3 py-2 text-xs font-medium text-right whitespace-nowrap">
                                             <div className="inline-flex items-center space-x-2">
-                                                <MenuAction showDetail={false} editLink={`/data/mentor/${row.id}/edit`} deleteLink="" />
+                                                <MenuAction detailLink={`/data/siswa/${row.id}`} editLink={`/data/siswa/${row.id}/edit`} deleteLink="" />
                                             </div>
-                                        </td>
+                                        </td> */}
                                     </tr>
                                 ))}
                             </tbody>
@@ -231,7 +215,7 @@ export default function ListMentorPage() {
                 </div>
             </div>
 
-            <Pagination links={data?.links} from={data?.from} to={data?.to} total={data?.total} />
+            <Pagination links={siswaData?.links} from={siswaData?.from} to={siswaData?.to} total={siswaData?.total} />
         </div>
     )
 }

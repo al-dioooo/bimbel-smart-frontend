@@ -3,11 +3,17 @@ import GlobalSearch from "@/components/global-search"
 import { ProgressiveBlur } from "@/components/progressive-blur"
 import ProfileAction from "@/components/profile-action"
 import Notifications from "@/components/notifications"
+import { useRouter } from "next/navigation"
+import { useUser } from "@/hooks/use-user"
+import { logout } from "@/helpers/auth"
 
 export default function Topbar() {
+    const router = useRouter()
+    const { user } = useUser()
 
-    const handleLogout = () => {
-        console.log("User logged out")
+    const handleLogout = async () => {
+        await logout()
+        router.replace("/login")
     }
 
     return (
@@ -35,8 +41,8 @@ export default function Topbar() {
                         </div>
                     </ProfileAction>
                     <div>
-                        <p className="text-sm font-medium">Alice Evergarden</p>
-                        <p className="text-sm">Administrator</p>
+                        <p className="text-sm font-medium">{user?.name}</p>
+                        <p className="text-sm">{user?.role === 1 ? 'Administrator' : 'Mentor'}</p>
                     </div>
                 </div>
             </div>

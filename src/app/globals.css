@@ -3,6 +3,8 @@
 
 @custom-variant dark (&:is(.dark *));
 @source inline("{bg,border,from,to,text}-{sky,green,red,yellow}-{50,200,300,500}");
+@source inline("min-w-{sm,md,lg,xl,2xl,3xl}");
+@source inline("sm:max-w-{sm,md,lg,xl,2xl,3xl}");
 
 @theme {
     --aspect-cinema: 21 / 9;

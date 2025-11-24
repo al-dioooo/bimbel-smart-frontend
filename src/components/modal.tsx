@@ -25,9 +25,11 @@ type Props = {
     subtitle?: string
 
     footer?: React.ReactNode
+
+    size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl'
 }
 
-export default function Modal({ isOpen = false, onClose, from, children, title, subtitle, footer }: Props) {
+export default function Modal({ isOpen = false, onClose, from, children, title, subtitle, footer, size = 'lg' }: Props) {
     const [isOpenState, setIsOpenState] = useState(isOpen)
 
     useEffect(() => {
@@ -37,7 +39,7 @@ export default function Modal({ isOpen = false, onClose, from, children, title, 
     return (
         <Dialog open={isOpenState} onClose={onClose}>
             <DialogBackdrop className="fixed inset-0 z-50 bg-black/80" />
-            <DialogPanel from={from} className="sm:max-w-lg min-w-lg fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] z-50 border bg-background p-4 rounded-3xl">
+            <DialogPanel from={from} className={`sm:max-w-${size} min-w-${size} fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] z-50 border bg-background p-4 rounded-3xl`}>
                 <DialogHeader>
                     <DialogTitle className="text-xl font-semibold">{title}</DialogTitle>
                     <DialogDescription className="text-sm">

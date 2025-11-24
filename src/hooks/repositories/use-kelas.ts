@@ -12,6 +12,6 @@ export function useKelas(params: Record<string, unknown>) {
 }
 
 export function useKelasById(id: number | null) {
-    const { data, error, mutate } = useSWR<Kelas>(id ? `/kelas/${id}` : null, fetcher)
-    return { data, loading: id ? !error && !data : false, error, mutate }
+    const { data, isLoading, error, mutate } = useSWR<Kelas>(id ? `/kelas/${id}` : null, fetcher)
+    return { data, isLoading, error, mutate }
 }

@@ -76,13 +76,13 @@ export default function Notifications({ children }: Props) {
                     Notifikasi
                 </div>
 
-                <Highlight hover controlledItems className="bg-neutral-50/50 rounded-lg inset-0 max-h-[400px] overflow-y-auto">
+                <Highlight hover controlledItems className="bg-neutral-100 rounded-lg inset-0 max-h-[400px] overflow-y-auto">
                     {isLoading ? (
                         <div className="p-4 text-center text-neutral-400 text-xs">Loading...</div>
                     ) : notifications.length > 0 ? (
                         notifications.map((item) => (
                             <HighlightItem key={item.id}>
-                                <div className="flex w-full cursor-pointer items-start space-x-3 p-3 transition-colors hover:bg-neutral-100 rounded-lg">
+                                <div className="flex w-full cursor-pointer items-start space-x-3 p-3 transition-colors rounded-lg">
                                     <div className="mt-0.5 shrink-0 text-neutral-900">
                                         {renderIcon(item.type)}
                                     </div>

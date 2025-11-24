@@ -14,16 +14,18 @@ type PrimaryButtonProps<T extends React.ElementType> = {
 
     icon?: React.ReactNode
     centerText?: boolean
+
+    buttonType?: "primary" | "secondary" | "error"
 } & React.ComponentPropsWithoutRef<T>
 
-export default function OutlineButton<T extends React.ElementType = "button">({ as, children, className, isLoading, iconPosition, icon, centerText, ...rest }: PrimaryButtonProps<T>) {
+export default function OutlineButton<T extends React.ElementType = "button">({ as, children, className, isLoading, iconPosition, icon, centerText, buttonType = "primary", ...rest }: PrimaryButtonProps<T>) {
     var Button = as || "button"
     if (as === "link") {
         // @ts-ignore
         Button = Link
     }
 
-    const defaultClassName = `${isLoading ? (iconPosition === 'right' ? 'pl-4 pr-2' : 'pl-2 pr-4') : 'px-4'} ${iconPosition === 'right' ? 'flex-row-reverse' : ''} ${centerText ? 'w-full' : ''} justify-between inline-flex items-center gap-x-2 cursor-pointer border border-sky-500 text-sky-500 scale-3d hover:active:scale-95 font-medium py-2 rounded-full transition`
+    const defaultClassName = `${isLoading ? (iconPosition === 'right' ? 'pl-4 pr-2' : 'pl-2 pr-4') : 'px-4'} ${iconPosition === 'right' ? 'flex-row-reverse' : ''} ${centerText ? 'w-full' : ''} ${buttonType === 'secondary' ? 'border-neutral-200 bg-neutral-50' : (buttonType === 'error' ? 'border-red-500 text-red-500' : 'border-sky-500 text-sky-500')} justify-between inline-flex items-center gap-x-2 cursor-pointer border scale-3d hover:active:scale-95 font-medium py-2 rounded-full transition`
 
     return (
         <Button {...rest} className={cn(className, defaultClassName)}>

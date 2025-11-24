@@ -3,6 +3,7 @@ export interface User {
     name: string
     username: string
     email: string
+    role: number
     created_at: string
     updated_at: string
 }
@@ -11,7 +12,9 @@ export interface Kelas {
     id: number
     nama: string
     tingkat: string
+    mentor_id: number
     mentor?: Mentor
+    siswa?: Siswa[]
     created_at: string
     updated_at: string
 }

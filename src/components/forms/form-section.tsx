@@ -3,9 +3,11 @@ type Props = {
 
     title: string
     description?: string
+
+    disablePadding?: boolean
 }
 
-export default function FormSection({ children, title, description }: Props) {
+export default function FormSection({ children, title, description, disablePadding = false }: Props) {
     return (
         <div className="mt-10 sm:mt-0">
             <div className="md:grid md:grid-cols-3 md:gap-6">
@@ -16,10 +18,8 @@ export default function FormSection({ children, title, description }: Props) {
                     </div>
                 </div>
                 <div className="mt-5 md:col-span-2 md:mt-0">
-                    <div className="border sm:rounded-xl">
-                        <div className="p-4 sm:p-6">
-                            {children}
-                        </div>
+                    <div className={`${disablePadding ? '' : 'border sm:rounded-xl p-4 sm:p-6'}`}>
+                        {children}
                     </div>
                 </div>
             </div>

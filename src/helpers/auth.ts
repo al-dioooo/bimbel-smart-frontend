@@ -1,11 +1,13 @@
 import api from '@/lib/axios'
 import { setCookie, destroyCookie } from 'nookies'
+import { mutate } from 'swr'
 
 const COOKIE_KEY = 'bimbel_smart_auth_token'
 
 export async function login(identifier: string, password: string) {
     const { data } = await api.post('/login', { identifier, password })
     setCookie(null, COOKIE_KEY, data.data.token, { path: '/' })
+    mutate('/me', data.data.user)
     return data
 }
 
@@ -28,6 +30,5 @@ export async function register(
 }
 
 export async function logout() {
-    destroyCookie(null, COOKIE_KEY, { path: '/' })
-    return api.post('/logout')
+    return api.post('/logout').then(() => destroyCookie(null, COOKIE_KEY, { path: '/' }))
 }

@@ -21,21 +21,21 @@ export default function Pagination({ links, from, to, total }: Props) {
                         <>
                             {index === 0 ? (
                                 row.url === null ? (
-                                    <div className="px-4 py-2 mb-1 mr-1 text-sm leading-4 text-neutral-400 border rounded-xl"><ArrowNarrowLeft className="w-6 h-6" /></div>
+                                    <div key={index} className="px-4 py-2 mb-1 mr-1 text-sm leading-4 text-neutral-400 border rounded-xl"><ArrowNarrowLeft className="w-6 h-6" /></div>
                                 ) : (
-                                    <Link href={row.url} className={`${row.active ? 'bg-neutral-800 text-white hover:bg-neutral-700' : 'hover:bg-neutral-100'} px-4 py-2 mb-1 mr-1 text-sm leading-4 transition border rounded-xl focus:border-neutral-500 active:hover:scale-95`}><ArrowNarrowLeft className="w-6 h-6" /></Link>
+                                    <Link key={index} href={row.url} className={`${row.active ? 'bg-sky-500 text-white hover:bg-sky-400' : 'hover:bg-sky-100'} px-4 py-2 mb-1 mr-1 text-sm leading-4 transition border rounded-xl focus:border-sky-500 active:hover:scale-95`}><ArrowNarrowLeft className="w-6 h-6" /></Link>
                                 )
                             ) : (index === links.length - 1 ? (
                                 row.url === null ? (
-                                    <div className="px-4 py-2 mb-1 mr-1 text-sm leading-4 text-neutral-400 border rounded-xl"><ArrowNarrowRight className="w-6 h-6" /></div>
+                                    <div key={index} className="px-4 py-2 mb-1 mr-1 text-sm leading-4 text-sky-400 border rounded-xl"><ArrowNarrowRight className="w-6 h-6" /></div>
                                 ) : (
-                                    <Link href={row.url} className={`${row.active ? 'bg-neutral-800 text-white hover:bg-neutral-700' : 'hover:bg-neutral-100'} px-4 py-2 mb-1 mr-1 text-sm leading-4 transition border rounded-xl focus:border-neutral-500 active:hover:scale-95`}><ArrowNarrowRight className="w-6 h-6" /></Link>
+                                    <Link key={index} href={row.url} className={`${row.active ? 'bg-sky-500 text-white hover:bg-sky-400' : 'hover:bg-sky-100'} px-4 py-2 mb-1 mr-1 text-sm leading-4 transition border rounded-xl focus:border-sky-500 active:hover:scale-95`}><ArrowNarrowRight className="w-6 h-6" /></Link>
                                 )
                             ) : (
                                 row.url === null ? (
-                                    <div className="px-4 py-3 mb-1 mr-1 text-sm leading-4 text-neutral-400 border rounded-xl">{row.label}</div>
+                                    <div key={index} className="px-4 py-3 mb-1 mr-1 text-sm leading-4 text-sky-400 border rounded-xl">{row.label}</div>
                                 ) : (
-                                    <Link href={row.url} className={`${row.active ? 'bg-neutral-800 text-white hover:bg-neutral-700' : 'hover:bg-neutral-100'} px-4 py-3 mb-1 mr-1 text-sm leading-4 transition border rounded-xl focus:border-neutral-500 active:hover:scale-95`}>{row.label}</Link>
+                                    <Link key={index} href={row.url} className={`${row.active ? 'bg-sky-500 text-white hover:bg-sky-400' : 'hover:bg-sky-100'} px-4 py-3 mb-1 mr-1 text-sm leading-4 transition border rounded-xl focus:border-sky-500 active:hover:scale-95`}>{row.label}</Link>
                                 )
                             ))}
                         </>

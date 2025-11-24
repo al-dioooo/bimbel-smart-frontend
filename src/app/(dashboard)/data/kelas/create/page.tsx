@@ -13,9 +13,9 @@ export default function CreateKelas() {
     const submitHandler = (data: any) => {
         api.post('/kelas', data).then(() => {
             router.push('/data/kelas')
-        }).catch(err => {
-            if (err.response?.status === 422) {
-                setErrors(err.response.data.errors)
+        }).catch((error) => {
+            if (error.response?.status === 422) {
+                setErrors(error.response.data.errors)
             }
         })
     }

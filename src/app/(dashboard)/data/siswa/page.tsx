@@ -137,10 +137,11 @@ export default function ListSiswaPage() {
                                             <span><ChevronUpDown direction={orderBy === ('nama') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
                                         </button>
                                     </th>
+                                    <th scope="col" className="px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">Kelas</th>
                                     <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('kelas.nama')}>
-                                            <span>Kelas</span>
-                                            <span><ChevronUpDown direction={orderBy === ('kelas.nama') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
+                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('kontak')}>
+                                            <span>Kontak</span>
+                                            <span><ChevronUpDown direction={orderBy === ('kontak') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
                                         </button>
                                     </th>
                                     <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
@@ -210,6 +211,9 @@ export default function ListSiswaPage() {
                                         </td>
                                         <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
                                             {row.kelas?.nama ?? '-'}
+                                        </td>
+                                        <td className="px-6 py-4 text-xs font-medium text-neutral-900 whitespace-nowrap">
+                                            {row.kontak}
                                         </td>
                                         <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
                                             {moment(row.created_at).format('MMMM D, YYYY')}
