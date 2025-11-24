@@ -42,7 +42,7 @@ export default function ProfileAction({
                         </Link>
                     </HighlightItem>
 
-                    {/* Menu Log Out (Merah) */}
+                    {/* Menu Log Out */}
                     <HighlightItem>
                         <button 
                             onClick={onLogout} 

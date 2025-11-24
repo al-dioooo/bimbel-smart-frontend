@@ -1,11 +1,9 @@
 'use client'
-
 import { useState } from "react"
 import { Popover as BasePopover, PopoverButton, PopoverPanel } from "@/components/base/popover"
 import { Highlight, HighlightItem } from "@/components/base/highlight"
 import { Bell, Calendar, Wallet, InfoCircle } from "@/components/icons/outline"
 
-// --- Tipe Data & Mock Data (Sama seperti sebelumnya) ---
 type NotificationType = 'schedule' | 'finance' | 'info'
 
 interface NotificationItem {
@@ -36,7 +34,6 @@ const MOCK_DATA: NotificationItem[] = [
     }
 ]
 
-// Tambahkan prop children
 type Props = {
     children?: React.ReactNode
 }
@@ -45,7 +42,6 @@ export default function Notifications({ children }: Props) {
     const [notifications, setNotifications] = useState<NotificationItem[]>(MOCK_DATA)
     const [isLoading, setIsLoading] = useState(false)
 
-    // Cek apakah ada pesan belum dibaca untuk memunculkan titik merah
     const hasUnread = notifications.some(n => !n.isRead)
 
     const renderIcon = (type: NotificationType) => {
