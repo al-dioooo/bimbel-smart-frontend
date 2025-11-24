@@ -1,16 +1,17 @@
-import Calendar from "@/components/calendar"
+// import Calendar from "@/components/calendar"
 import JadwalDashboard from "@/components/jadwalDashboard"
+import Calendar from "@/components/full-calendar"
 
 export default function Jadwal() {
     return (
-            <div className="flex space-x-4">
-                <div className="space-y-4 w-2/3">
-                    <div className="">
+            <div className="flex space-x-4 items-stretch">
+                <div className="pace-y-4 w-9/12 flex flex-col">
+                    <div className="h-full">
                         <Calendar />
                     </div>
                 </div>
-                <div className="space-y-4 w-1/3">
-                    <div className="">
+                <div className="space-y-4 w-3/12 flex flex-col">
+                    <div className="h-full">
                         <JadwalDashboard />
                     </div>
                 </div>

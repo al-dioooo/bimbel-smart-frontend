@@ -20,7 +20,7 @@ export default function MenuAction({ showDetail = true, detailLink = "", editLin
             <PopoverButton className="p-2 rounded-lg hover:bg-neutral-100 cursor-pointer focus:outline-none">
                 <DotsVertical className="w-4 h-4" />
             </PopoverButton>
-            <PopoverPanel anchor={{ to: "bottom end", gap: 4 }} className="w-48 bg-background border p-2 z-50 rounded-xl text-xs">
+            <PopoverPanel anchor={{ to: "bottom end", gap: 4 }} className="w-48 bg-background border p-1 z-50 rounded-xl text-xs">
                 <Highlight hover controlledItems className="bg-neutral-100 rounded-lg inset-0">
                     <HighlightItem>
                         <Link href={detailLink} className="flex space-x-2 items-center p-2">

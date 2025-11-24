@@ -53,7 +53,7 @@ const TambahDataMentorPage: React.FC = () => {
 
   return (
     <div className="p-8">
-      <h1 className="text-3xl font-semibold mb-8">Tambah Data Mentor</h1>
+      <h1 className="text-3xl font-semibold mb-8">Edit Data Mentor</h1>
 
       <form onSubmit={handleSubmit} className="space-y-10">
 

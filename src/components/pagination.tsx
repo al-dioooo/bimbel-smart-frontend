@@ -2,18 +2,18 @@ import { ArrowNarrowLeft, ArrowNarrowRight } from "@/components/icons/outline"
 import Link from "next/link"
 
 type Props = {
-    links: Array<{
+    links?: Array<{
         url: string | null
         label: string
         active: boolean
     }>
-    from: number
-    to: number
-    total: number
+    from?: number
+    to?: number
+    total?: number
 }
 
 export default function Pagination({ links, from, to, total }: Props) {
-    if (links?.length > 3) {
+    if (links && links.length > 3) {
         return (
             <div className="flex items-center flex-wrap gap-4 justify-between w-full">
                 <div className="flex flex-wrap -mb-1">

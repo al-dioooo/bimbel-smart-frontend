@@ -1,7 +1,5 @@
 'use client'
 
-// import { swrFetcher } from "@/helpers/swr-fetcher"
-// import Link from "next/link"
 import moment from "moment"
 import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
@@ -11,13 +9,13 @@ import { CircleDashedPlus, Search } from "@/components/icons/outline"
 import MenuAction from "@/components/menu-action"
 
 import OutlineButton from "@/components/buttons/outline"
-import { useKelas } from "@/hooks/repositories/use-kelas"
+import { useSiswa } from "@/hooks/repositories/use-siswa"
 import Filter from "./filter"
 import { Highlight, HighlightItem } from "@/components/base/highlight"
 import Pagination from "@/components/pagination"
 import { ChevronUpDown } from "@/components/icons/dynamic"
 
-export default function ListKelasPage() {
+export default function ListSiswaPage() {
     const router = useRouter()
     const pathname = usePathname()
 
@@ -36,7 +34,7 @@ export default function ListKelasPage() {
     const orderBy = searchParams.get('order_by')
     const direction = searchParams.get('direction')
 
-    const { data, mutate, error, isLoading, isValidating } = useKelas({
+    const { data, mutate, error, isLoading, isValidating } = useSiswa({
         page,
 
         search,
@@ -111,7 +109,7 @@ export default function ListKelasPage() {
     return (
         <div className="space-y-6">
             {/* Title */}
-            <h1 className="text-3xl font-semibold">List Kelas</h1>
+            <h1 className="text-3xl font-semibold">List Siswa</h1>
 
             <div className="space-y-6">
                 <div className="flex items-center justify-between text-xs">
@@ -125,7 +123,7 @@ export default function ListKelasPage() {
                         <Filter onSubmit={updateFilter} onRemove={removeFilter} data={Object.fromEntries(Object.entries({ nama, from, to }).filter(([_, v]) => v != null))} />
                     </div>
                     <div className="flex items-center space-x-2">
-                        <OutlineButton as="link" href="/data/kelas/create" className="text-xs" icon={<CircleDashedPlus className="w-5 h-5" />}>Tambah Kelas</OutlineButton>
+                        <OutlineButton as="link" href="/data/siswa/create" className="text-xs" icon={<CircleDashedPlus className="w-5 h-5" />}>Tambah Siswa</OutlineButton>
                     </div>
                 </div>
                 <div className="overflow-x-auto border border-neutral-200 rounded-xl">
@@ -140,12 +138,11 @@ export default function ListKelasPage() {
                                         </button>
                                     </th>
                                     <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('tingkat')}>
-                                            <span>Tingkat</span>
-                                            <span><ChevronUpDown direction={orderBy === ('tingkat') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
+                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('kelas.nama')}>
+                                            <span>Kelas</span>
+                                            <span><ChevronUpDown direction={orderBy === ('kelas.nama') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
                                         </button>
                                     </th>
-                                    <th scope="col" className="px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">Mentor</th>
                                     <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
                                         <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('created_at')}>
                                             <span>Dibuat Pada</span>
@@ -212,10 +209,7 @@ export default function ListKelasPage() {
                                             {row.nama}
                                         </td>
                                         <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            {row.tingkat}
-                                        </td>
-                                        <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            {row.mentor?.user?.name ?? '-'}
+                                            {row.kelas?.nama ?? '-'}
                                         </td>
                                         <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
                                             {moment(row.created_at).format('MMMM D, YYYY')}
@@ -225,7 +219,7 @@ export default function ListKelasPage() {
                                         </td>
                                         <td className="px-3 py-2 text-xs font-medium text-right whitespace-nowrap">
                                             <div className="inline-flex items-center space-x-2">
-                                                <MenuAction detailLink={`/data/kelas/${row.id}`} editLink={`/data/kelas/${row.id}/edit`} deleteLink="" />
+                                                <MenuAction detailLink={`/data/siswa/${row.id}`} editLink={`/data/siswa/${row.id}/edit`} deleteLink="" />
                                             </div>
                                         </td>
                                     </tr>

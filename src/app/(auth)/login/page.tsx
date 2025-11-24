@@ -4,13 +4,17 @@ import { useState } from "react"
 import Input from "@/components/forms/input"
 import ErrorMessage from "@/components/forms/error-message"
 import PrimaryButton from "@/components/buttons/primary"
+import { login } from "@/helpers/auth"
+import { useRouter } from "next/navigation"
 
 export default function LoginPage() {
+    const router = useRouter()
+
     const [username, setUsername] = useState("")
     const [password, setPassword] = useState("")
     const [errors, setErrors] = useState<string[]>([])
 
-    const handleLogin = (e: React.FormEvent) => {
+    const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
 
         const newErrors = []
@@ -23,12 +27,23 @@ export default function LoginPage() {
         }
 
         // Dummy login validation (mau cek warna)
-        setErrors(["Username/email atau password Anda salah"])
+        try {
+            await login(username, password)
+            router.push('/')
+        } catch (error: any) {
+            if (error.response?.status === 422) {
+                setErrors(error.response.data.errors || {})
+            } else {
+                console.error("Login failed:", error)
+            }
+        } finally {
+            // setIsLoading(false)
+        }
     }
 
     return (
         <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
-            <div 
+            <div
                 className="flex items-center justify-center"
                 style={{
                     background: 'linear-gradient(-135deg, #F0F9FF 0%, #DFF2FE 50%, #74D4FF 100%)'
