@@ -11,13 +11,12 @@ import { CircleDashedPlus, Search } from "@/components/icons/outline"
 import MenuAction from "@/components/menu-action"
 
 import OutlineButton from "@/components/buttons/outline"
-import { useKelas } from "@/hooks/repositories/use-kelas"
+import { useMentor } from "@/hooks/repositories/use-mentor"
 import Filter from "./filter"
-import { Highlight, HighlightItem } from "@/components/base/highlight"
 import Pagination from "@/components/pagination"
 import { ChevronUpDown } from "@/components/icons/dynamic"
 
-export default function ListKelasPage() {
+export default function ListMentorPage() {
     const router = useRouter()
     const pathname = usePathname()
 
@@ -36,7 +35,7 @@ export default function ListKelasPage() {
     const orderBy = searchParams.get('order_by')
     const direction = searchParams.get('direction')
 
-    const { data, mutate, error, isLoading, isValidating } = useKelas({
+    const { data, mutate, error, isLoading, isValidating } = useMentor({
         page,
 
         search,
@@ -111,7 +110,7 @@ export default function ListKelasPage() {
     return (
         <div className="space-y-6">
             {/* Title */}
-            <h1 className="text-3xl font-semibold">List Kelas</h1>
+            <h1 className="text-3xl font-semibold">List Mentor</h1>
 
             <div className="space-y-6">
                 <div className="flex items-center justify-between text-xs">
@@ -125,7 +124,7 @@ export default function ListKelasPage() {
                         <Filter onSubmit={updateFilter} onRemove={removeFilter} data={Object.fromEntries(Object.entries({ nama, from, to }).filter(([_, v]) => v != null))} />
                     </div>
                     <div className="flex items-center space-x-2">
-                        <OutlineButton as="link" href="/data/kelas/create" className="text-xs" icon={<CircleDashedPlus className="w-5 h-5" />}>Tambah Kelas</OutlineButton>
+                        <OutlineButton as="link" href="/data/mentor/create" className="text-xs" icon={<CircleDashedPlus className="w-5 h-5" />}>Tambah Mentor</OutlineButton>
                     </div>
                 </div>
                 <div className="overflow-x-auto border border-neutral-200 rounded-xl">
@@ -140,12 +139,11 @@ export default function ListKelasPage() {
                                         </button>
                                     </th>
                                     <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('tingkat')}>
-                                            <span>Tingkat</span>
-                                            <span><ChevronUpDown direction={orderBy === ('tingkat') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
+                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('kontak')}>
+                                            <span>Kontak</span>
+                                            <span><ChevronUpDown direction={orderBy === ('kontak') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
                                         </button>
                                     </th>
-                                    <th scope="col" className="px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">Mentor</th>
                                     <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
                                         <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('created_at')}>
                                             <span>Dibuat Pada</span>
@@ -209,13 +207,10 @@ export default function ListKelasPage() {
                                 {(data && data.data && data.data.length > 0) && data.data.map((row) => (
                                     <tr key={row.id} className="hover:bg-neutral-50">
                                         <td className="px-6 py-4 text-xs font-medium text-neutral-900 whitespace-nowrap">
-                                            {row.nama}
+                                            {row.user?.name}
                                         </td>
                                         <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            {row.tingkat}
-                                        </td>
-                                        <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            {row.mentor?.user?.name ?? '-'}
+                                            {row.kontak}
                                         </td>
                                         <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
                                             {moment(row.created_at).format('MMMM D, YYYY')}
@@ -225,7 +220,7 @@ export default function ListKelasPage() {
                                         </td>
                                         <td className="px-3 py-2 text-xs font-medium text-right whitespace-nowrap">
                                             <div className="inline-flex items-center space-x-2">
-                                                <MenuAction detailLink={`/data/kelas/${row.id}`} editLink={`/data/kelas/${row.id}/edit`} deleteLink="" />
+                                                <MenuAction detailLink={`/data/mentor/${row.id}`} editLink={`/data/mentor/${row.id}/edit`} deleteLink="" />
                                             </div>
                                         </td>
                                     </tr>

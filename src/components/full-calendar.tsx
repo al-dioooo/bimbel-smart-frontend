@@ -41,8 +41,8 @@ export default function FullCalendar() {
                     { id: 'e3', title: 'Kelas 6 B' },
                     { id: 'e4', title: 'Kelas 8 B' },
                     { id: 'e5', title: 'Kelas 7 A' },
-                    { id: 'e5', title: 'Kelas 7 A' },
-                    { id: 'e5', title: 'Kelas 7 A' }
+                    { id: 'e6', title: 'Kelas 7 A' },
+                    { id: 'e7', title: 'Kelas 7 A' }
                 ]
             },
             {

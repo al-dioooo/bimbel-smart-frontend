@@ -28,7 +28,7 @@ export default function GlobalSearch({ from }: RadixDialogDemoProps) {
                     <span>
                         <Search className="w-4 h-4" />
                     </span>
-                    <span className="text-xs">Search</span>
+                    <span className="text-xs">Cari apa saja</span>
                 </div>
             </button>
 
