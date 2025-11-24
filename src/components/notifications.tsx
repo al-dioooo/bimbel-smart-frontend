@@ -54,13 +54,11 @@ export default function Notifications({ children }: Props) {
 
     return (
         <BasePopover>
-            <PopoverButton className="relative flex items-start cursor-pointer focus:outline-none -mt-1">
+            <PopoverButton className="relative flex items-center cursor-pointer focus:outline-none p-2 rounded-xl border border-sky-200 hover:bg-sky-50 transition-colors">
                 {children ? (
                     children
                 ) : (
-                    <div className="p-2 rounded-xl border border-sky-200 hover:bg-sky-50 transition-colors">
-                        <Bell className="text-sky-500 w-6 h-6" />
-                    </div>
+                    <Bell className="text-sky-500 w-6 h-6" />
                 )}
 
                 {hasUnread && (
@@ -72,7 +70,7 @@ export default function Notifications({ children }: Props) {
 
             {/* Notifications Panel */}
             <PopoverPanel anchor={{ to: "bottom end", gap: 8 }} className="w-96 bg-background border p-1 z-50 rounded-xl text-sm shadow-xl">
-                <div className="px-3 py-2 font-semibold text-black mb-1">
+                <div className="px-3 py-2 font-semibold mb-1">
                     Notifikasi
                 </div>
 

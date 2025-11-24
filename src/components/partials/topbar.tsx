@@ -4,12 +4,10 @@ import { ProgressiveBlur } from "@/components/progressive-blur"
 import ProfileAction from "@/components/profile-action"
 import Notifications from "@/components/notifications"
 import { useRouter } from "next/navigation"
-import { useUser } from "@/hooks/use-user"
 import { logout } from "@/helpers/auth"
 
 export default function Topbar() {
     const router = useRouter()
-    const { user } = useUser()
 
     const handleLogout = async () => {
         await logout()
@@ -26,24 +24,12 @@ export default function Topbar() {
             {/* Notifications and Profile */}
             <div className="flex items-center space-x-2">
                 {/* Notifications */}
-                <Notifications>
-                    <button className="p-2 rounded-xl border border-sky-200">
-                        <Bell className="text-sky-500 w-6 h-6" />
-                    </button>
-                </Notifications>
+                <Notifications />
 
                 {/* Users */}
                 <div className="space-x-2 flex items-center">
                     {/* Avatar */}
-                    <ProfileAction onLogout={handleLogout}>
-                        <div className="p-2 rounded-xl bg-radial-[at_20%_20%] from-sky-500 to-sky-300">
-                            <User className="text-white w-6 h-6" />
-                        </div>
-                    </ProfileAction>
-                    <div>
-                        <p className="text-sm font-medium">{user?.name}</p>
-                        <p className="text-sm">{user?.role === 1 ? 'Administrator' : 'Mentor'}</p>
-                    </div>
+                    <ProfileAction onLogout={handleLogout} />
                 </div>
             </div>
         </div>

@@ -3,7 +3,8 @@
 import { Popover as BasePopover, PopoverButton, PopoverPanel } from "@/components/base/popover"
 import { Highlight, HighlightItem } from "@/components/base/highlight"
 import Link from "next/link"
-import { User, Logout } from "@/components/icons/outline" 
+import { User, Logout, ChevronDown } from "@/components/icons/outline"
+import { useUser } from "@/hooks/use-user"
 
 type Props = {
     biodataLink?: string
@@ -11,47 +12,56 @@ type Props = {
     children?: React.ReactNode
 }
 
-export default function ProfileAction({ 
-    biodataLink = "/biodata", 
-    onLogout, 
-    children 
+export default function ProfileAction({
+    biodataLink = "/biodata",
+    onLogout,
+    children
 }: Props) {
+    const { user } = useUser()
+
     return (
         <BasePopover>
-            <PopoverButton className="rounded-full hover:bg-neutral-100 cursor-pointer focus:outline-none transition-colors">
+            <PopoverButton className="flex items-center group cursor-pointer focus:outline-none">
                 {children ? (
                     children
                 ) : (
-                    <div className="p-2">
-                        <User className="w-5 h-5" />
+                    <div className="flex items-center space-x-4">
+                        <div className="flex items-center space-x-2">
+                            <div className="p-2 group-hover:from-sky-400 group-hover:to-sky-200 transition rounded-xl bg-radial-[at_20%_20%] from-sky-500 to-sky-300">
+                                <User className="text-white w-6 h-6" />
+                            </div>
+                            <div className="text-left group-hover:text-neutral-500 transition">
+                                <p className="text-sm font-medium">{user?.name}</p>
+                                <p className="text-sm">{user?.role === 1 ? 'Administrator' : 'Mentor'}</p>
+                            </div>
+                        </div>
+
+                        <ChevronDown strokeWidth={2} className="w-4 h-4 group-hover:text-neutral-500 transition" />
                     </div>
                 )}
             </PopoverButton>
 
             {/* Panel Menu */}
-            <PopoverPanel anchor={{ to: "bottom end", gap: 8 }} className="w-48 bg-background border p-1 z-50 rounded-xl text-sm font-medium shadow-md">
+            <PopoverPanel anchor={{ to: "bottom end", gap: 8 }} className="w-48 bg-background border p-1 z-50 rounded-xl text-sm shadow-md">
                 <Highlight hover controlledItems className="bg-neutral-100 rounded-lg inset-0 space-y-1">
-                    
+
                     {/* Menu Biodata */}
                     <HighlightItem>
                         <Link href={biodataLink} className="flex space-x-3 items-center px-3 py-2.5 text-neutral-900">
                             <div>
-                                <User className="w-7 h-7" />
+                                <User className="w-5 h-5" />
                             </div>
-                            <div className="font-semibold">Edit Profil</div>
+                            <div>Edit Profil</div>
                         </Link>
                     </HighlightItem>
 
                     {/* Menu Log Out */}
                     <HighlightItem>
-                        <button 
-                            onClick={onLogout} 
-                            className="flex w-full cursor-pointer space-x-3 items-center px-3 py-2.5 text-red-500 hover:bg-red-50 rounded-md transition-colors"
-                        >
+                        <button onClick={onLogout} className="flex w-full cursor-pointer space-x-3 items-center px-3 py-2.5 text-red-500 hover:bg-red-50 rounded-md transition-colors">
                             <div>
-                                <Logout className="w-7 h-7" />
+                                <Logout className="w-5 h-5" />
                             </div>
-                            <div className="font-semibold">Log Out</div>
+                            <div>Log Out</div>
                         </button>
                     </HighlightItem>
 
