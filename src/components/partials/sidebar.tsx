@@ -32,13 +32,13 @@ export default function Sidebar({ }: Props) {
                         <SidebarLink type="main" label="Gaji" href="/aturan-gaji" icon={<Wallet className="w-5 h-5" />} activePath="/aturan-gaji" exact />
                     </li>
                     <li className="flex-1">
-                        <SidebarLink type="main" label="Data" href="/data/kelas" icon={<Database className="w-5 h-5" />} activePath="/data/kelas" />
+                        <SidebarLink type="main" label="Data" href="/data/kelas" icon={<Database className="w-5 h-5" />} activePath="/data" />
                         <SidebarLink type="sublink" label="Kelas" href="/data/kelas" activePath="/data/kelas" exact />
                         <SidebarLink type="sublink" label="Mentor" href="/data/mentor" activePath="/data/mentor" exact />
                         <SidebarLink type="sublink" label="Siswa" href="/data/siswa" activePath="/data/siswa" exact />
                     </li>
                     <li>
-                        <SidebarLink type="main" label="Report" href="/report/absensi" icon={<Database className="w-5 h-5" />} activePath="/report/absensi" />
+                        <SidebarLink type="main" label="Report" href="/report/absensi" icon={<Database className="w-5 h-5" />} activePath="/report" />
                         <SidebarLink type="sublink" label="Absensi" href="/report/absensi" activePath="/report/absensi" exact />
                         <SidebarLink type="sublink" label="Gaji" href="/report/gaji" activePath="/report/gaji" exact />
                     </li>

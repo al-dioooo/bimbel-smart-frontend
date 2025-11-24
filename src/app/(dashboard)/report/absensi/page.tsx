@@ -7,7 +7,7 @@ import { usePathname, useRouter, useSearchParams } from "next/navigation"
 import { useEffect, useRef, useState } from "react"
 
 import { AutoHeight } from "@/components/auto-height"
-import { CircleDashedPlus, InfoCircle, Pencil, Plus, Search } from "@/components/icons/outline"
+import { CircleDashedPlus, InfoCircle, Pencil, Plus, Search, Trash } from "@/components/icons/outline"
 import MenuAction from "@/components/menu-action"
 
 import OutlineButton from "@/components/buttons/outline"
@@ -15,8 +15,9 @@ import { useKelas } from "@/hooks/repositories/use-kelas"
 import { Highlight, HighlightItem } from "@/components/base/highlight"
 import Pagination from "@/components/pagination"
 import { ChevronUpDown } from "@/components/icons/dynamic"
+import Filter from "./filter"
 
-export default function RekapAbsensiKelasPage() {
+export default function ReportAbsensiPage() {
     const router = useRouter()
     const pathname = usePathname()
 
@@ -121,51 +122,43 @@ export default function RekapAbsensiKelasPage() {
                             </div>
                             <input ref={searchInput} onChange={(e) => setSearchTemp(e.target.value)} value={searchTemp} type="text" placeholder="Cari absensi" autoComplete="off" className="w-64 py-3 pl-8 pr-4 text-xs transition border border-neutral-200 focus:outline-none rounded-full focus:border-sky-400 focus:ring-2 focus:ring-sky-200" />
                         </div>
-                    </div>
-                    <div className="flex items-center space-x-2">
-                        <OutlineButton as="link" href="/data/report/gaji" className="text-xs" icon={<CircleDashedPlus className="w-5 h-5" />}>Tambah Absensi Baru</OutlineButton>
+                        <Filter onSubmit={updateFilter} onRemove={removeFilter} data={Object.fromEntries(Object.entries({ nama, from, to }).filter(([_, v]) => v != null))} />
                     </div>
                 </div>
-                
+
                 <div className="overflow-x-auto border border-neutral-200 rounded-xl">
                     <AutoHeight>
                         <table className="min-w-full overflow-x-auto divide-y divide-neutral-200">
                             <thead className="bg-neutral-50 rounded-t-3xl">
                                 <tr>
                                     <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('nama')}>
-                                            <span>No</span>
-                                            <span><ChevronUpDown direction={orderBy === ('nama') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
-                                        </button>
-                                    </th>
-                                    <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('tingkat')}>
+                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('bulan')}>
                                             <span>Bulan</span>
-                                            <span><ChevronUpDown direction={orderBy === ('tingkat') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
+                                            <span><ChevronUpDown direction={orderBy === ('bulan') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
                                         </button>
                                     </th>
                                     <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('created_at')}>
+                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('hadir')}>
                                             <span>Hadir</span>
-                                            <span><ChevronUpDown direction={orderBy === ('created_at') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
+                                            <span><ChevronUpDown direction={orderBy === ('hadir') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
                                         </button>
                                     </th>
                                     <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('created_at')}>
+                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('sakit')}>
                                             <span>Sakit</span>
-                                            <span><ChevronUpDown direction={orderBy === ('created_at') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
+                                            <span><ChevronUpDown direction={orderBy === ('sakit') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
                                         </button>
                                     </th>
                                     <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('created_at')}>
+                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('izin')}>
                                             <span>Izin</span>
-                                            <span><ChevronUpDown direction={orderBy === ('created_at') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
+                                            <span><ChevronUpDown direction={orderBy === ('izin') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
                                         </button>
                                     </th>
                                     <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('created_at')}>
-                                            <span>Alpha</span>
-                                            <span><ChevronUpDown direction={orderBy === ('created_at') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
+                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('alpa')}>
+                                            <span>Alpa</span>
+                                            <span><ChevronUpDown direction={orderBy === ('alpa') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
                                         </button>
                                     </th>
                                     <th scope="col" className="relative px-6 py-3"><span className="sr-only">Action</span></th>
@@ -241,7 +234,7 @@ export default function RekapAbsensiKelasPage() {
                                                 <OutlineButton as="link" href="/report/absensi/1" className="text-xs" icon={<InfoCircle className="w-5 h-5" />}>Export</OutlineButton>
                                             </div>
                                             <div className="inline-flex items-center space-x-2">
-                                                <OutlineButton as="link" href="/report/absensi/1" className="text-xs" icon={<InfoCircle className="w-5 h-5" />}>Delete</OutlineButton>
+                                                <OutlineButton buttonType="danger" as="link" href="/report/absensi/1" className="text-xs" icon={<Trash className="w-5 h-5" />}>Delete</OutlineButton>
                                             </div>
                                         </td>
                                     </tr>

@@ -254,7 +254,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                                                 {row.kontak}
                                             </td>
                                             <td className="px-3 py-2 text-xs font-medium text-right whitespace-nowrap">
-                                                <OutlineButton onClick={() => removeSelectedSiswa(row)} type="button" buttonType="error" className="text-xs" icon={<Trash className="w-5 h-5" />}>Delete</OutlineButton>
+                                                <OutlineButton onClick={() => removeSelectedSiswa(row)} type="button" buttonType="danger" className="text-xs" icon={<Trash className="w-5 h-5" />}>Delete</OutlineButton>
                                             </td>
                                         </tr>
                                     ))}

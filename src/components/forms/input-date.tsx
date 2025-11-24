@@ -50,12 +50,11 @@ export default function InputDate({ value, onChange }: Props) {
     //     }
     // }, [inputValue])
 
-    // useEffect(() => {
-    //     if (onChange) {
-    //         onChange(date)
-    //         console.log("date", date)
-    //     }
-    // }, [date])
+    useEffect(() => {
+        if (value) {
+            setDate(value)
+        }
+    }, [value])
 
     const updateValue = (date: Date | undefined) => {
         setDate(date)

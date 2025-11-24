@@ -31,6 +31,18 @@ export interface Mentor {
     updated_at: string
 }
 
+export interface Jadwal {
+    id: number
+    kelas_id: number
+    kelas?: Kelas
+    tanggal: Date
+    waktu_mulai: string
+    waktu_selesai: string
+    materi: string
+    created_at: string
+    updated_at: string
+}
+
 export interface Siswa {
     id: number
     nama: string
@@ -43,7 +55,6 @@ export interface Siswa {
     kontak_wali: string
     pekerjaan_wali: string
     alamat_wali: string
-    is_active: string
     tanggal_bergabung: string
     created_at: string
     updated_at: string

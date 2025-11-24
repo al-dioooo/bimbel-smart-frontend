@@ -9,7 +9,7 @@ const nextConfig: NextConfig = {
     },
 
     // Disable to remove <Highlight /> component flickering on change
-    reactStrictMode: true
+    reactStrictMode: false
 };
 
 export default nextConfig
