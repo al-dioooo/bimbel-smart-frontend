@@ -1,3 +1,4 @@
+'use client'
 import Sidebar from "@/components/partials/sidebar"
 import Topbar from "@/components/partials/topbar"
 
