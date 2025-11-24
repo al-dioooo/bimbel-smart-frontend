@@ -54,7 +54,7 @@ export default function Notifications({ children }: Props) {
 
     return (
         <BasePopover>
-            <PopoverButton className="relative flex items-center cursor-pointer focus:outline-none p-2 rounded-xl border border-sky-200 hover:bg-sky-50 transition-colors">
+            <PopoverButton className="relative flex items-center cursor-pointer focus:outline-none p-2 rounded-xl bg-white/80 border border-sky-200 hover:bg-sky-50 transition-colors">
                 {children ? (
                     children
                 ) : (
