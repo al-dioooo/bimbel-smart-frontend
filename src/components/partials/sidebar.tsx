@@ -29,7 +29,7 @@ export default function Sidebar({ }: Props) {
                         <SidebarLink type="sublink" label="Pengajuan" href="/jadwal/pengajuan" activePath="/jadwal/pengajuan" exact />
                     </li>
                     <li className="flex-1">
-                        <SidebarLink type="main" label="Gaji" href="/gaji" icon={<Wallet className="w-5 h-5" />} activePath="/gaji" exact />
+                        <SidebarLink type="main" label="Gaji" href="/aturan-gaji" icon={<Wallet className="w-5 h-5" />} activePath="/aturan-gaji" exact />
                     </li>
                     <li className="flex-1">
                         <SidebarLink type="main" label="Data" href="/data/kelas" icon={<Database className="w-5 h-5" />} activePath="/data/kelas" />

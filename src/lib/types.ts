@@ -52,8 +52,18 @@ export interface Siswa {
 export interface Pengajuan {
     id: number
     nama: string
-    created_at: string
     status: string
+    created_at: string
+    updated_at: string
+}
+
+export interface AturanGaji {
+    id: number
+    kelas_id: number
+    kelas?: Kelas
+    tarif: number
+    created_at: string
+    updated_at: string
 }
 
 export interface AuthToken {

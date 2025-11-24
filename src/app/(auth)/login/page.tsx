@@ -6,6 +6,7 @@ import ErrorMessage from "@/components/forms/error-message"
 import PrimaryButton from "@/components/buttons/primary"
 import { login } from "@/helpers/auth"
 import { useRouter } from "next/navigation"
+import { Shield } from "@/components/icons/outline"
 
 export default function LoginPage() {
     const router = useRouter()
@@ -43,21 +44,15 @@ export default function LoginPage() {
 
     return (
         <div className="min-h-screen grid grid-cols-1 md:grid-cols-2">
-            <div
-                className="flex items-center justify-center"
+            <div className="flex items-center justify-center"
                 style={{
                     background: 'linear-gradient(-135deg, #F0F9FF 0%, #DFF2FE 50%, #74D4FF 100%)'
-                }}
-            >
-                <img
-                    src="/logo.png"
-                    alt="Logo Smart"
-                    className="w-80"
-                />
+                }}>
+                <img src="/logo.png" alt="Logo Smart" className="w-64" />
             </div>
 
-            <div className="flex items-center justify-center bg-gray-50">
-                <div className="w-[360px] bg-white border border-gray-100 rounded-2xl p-8 shadow-sm">
+            <div className="flex items-center justify-center bg-neutral-50">
+                <div className="max-w-xl w-full bg-white border border-neutral-200 rounded-2xl p-8">
 
                     <h2 className="text-xl font-bold text-center mb-1">Selamat datang!</h2>
                     <p className="text-center text-sm text-neutral-600 mb-6">
@@ -102,6 +97,7 @@ export default function LoginPage() {
                                 type="submit"
                                 centerText
                                 className="w-full"
+                                icon={<Shield className="w-5 h-5" />}
                             >
                                 Sign-in
                             </PrimaryButton>

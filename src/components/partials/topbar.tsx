@@ -15,14 +15,14 @@ export default function Topbar() {
     }
 
     return (
-        <div className="px-4 pb-4 pt-7 flex justify-between sticky top-0 space-x-8 z-10">
+        <div className="px-4 pb-4 pt-7 flex justify-between sticky top-0 space-x-4 z-10">
             <ProgressiveBlur className="w-full -z-10 rounded-t-xl" height="150%" position="top" />
             {/* Search Bar */}
             <div className="flex-1 grow">
                 <GlobalSearch from="top" />
             </div>
             {/* Notifications and Profile */}
-            <div className="flex items-center space-x-2">
+            <div className="flex items-center space-x-4">
                 {/* Notifications */}
                 <Notifications />
 

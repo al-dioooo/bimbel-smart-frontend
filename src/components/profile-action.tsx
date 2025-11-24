@@ -13,7 +13,7 @@ type Props = {
 }
 
 export default function ProfileAction({
-    biodataLink = "/biodata",
+    biodataLink = "/edit-profil",
     onLogout,
     children
 }: Props) {
