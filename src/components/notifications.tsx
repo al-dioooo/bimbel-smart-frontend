@@ -3,8 +3,11 @@ import { useState } from "react"
 import { Popover as BasePopover, PopoverButton, PopoverPanel } from "@/components/base/popover"
 import { Highlight, HighlightItem } from "@/components/base/highlight"
 import { Bell, Calendar, Wallet, InfoCircle } from "@/components/icons/outline"
+import { useNotification } from "@/hooks/repositories/use-notification"
+import { useUser } from "@/hooks/use-user"
+import moment from "moment"
 
-type NotificationType = 'schedule' | 'finance' | 'info'
+type NotificationType = 'schedule' | 'finance' | 'info' | any
 
 interface NotificationItem {
     id: string | number
@@ -39,10 +42,13 @@ type Props = {
 }
 
 export default function Notifications({ children }: Props) {
-    const [notifications, setNotifications] = useState<NotificationItem[]>(MOCK_DATA)
+    const { user } = useUser()
+    const { data: notifications } = useNotification(user?.id ?? 0)
+
+    // const [notifications, setNotifications] = useState<NotificationItem[]>(MOCK_DATA)
     const [isLoading, setIsLoading] = useState(false)
 
-    const hasUnread = notifications.some(n => !n.isRead)
+    const hasUnread = notifications?.some(n => !n.is_read)
 
     const renderIcon = (type: NotificationType) => {
         switch (type) {
@@ -77,12 +83,12 @@ export default function Notifications({ children }: Props) {
                 <Highlight hover controlledItems className="bg-neutral-100 rounded-lg inset-0 max-h-[400px] overflow-y-auto">
                     {isLoading ? (
                         <div className="p-4 text-center text-neutral-400 text-xs">Loading...</div>
-                    ) : notifications.length > 0 ? (
-                        notifications.map((item) => (
+                    ) : (notifications && notifications?.length > 0) ? (
+                        notifications?.map((item) => (
                             <HighlightItem key={item.id}>
                                 <div className="flex w-full cursor-pointer items-start space-x-3 p-3 transition-colors rounded-lg">
                                     <div className="mt-0.5 shrink-0 text-neutral-900">
-                                        {renderIcon(item.type)}
+                                        {renderIcon(item.icon)}
                                     </div>
                                     <div className="flex-1 min-w-0">
                                         <div className="flex justify-between items-baseline mb-0.5">
@@ -90,7 +96,7 @@ export default function Notifications({ children }: Props) {
                                                 {item.title}
                                             </p>
                                             <p className="text-[10px] text-neutral-400 whitespace-nowrap">
-                                                {item.date}
+                                                {moment(item.created_at).format('MMMM D, YYYY')}
                                             </p>
                                         </div>
                                         <p className="text-sm text-neutral-600 leading-snug">

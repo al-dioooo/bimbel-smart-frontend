@@ -77,6 +77,19 @@ export interface AturanGaji {
     updated_at: string
 }
 
+export interface Notification {
+    id: number
+    user_id: number
+    user?: User
+    icon: string
+    title: string
+    message: string
+    link: string
+    is_read: boolean
+    created_at: string
+    updated_at: string
+}
+
 export interface AuthToken {
     token: string
 }
