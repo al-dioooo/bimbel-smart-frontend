@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Fragment, ReactNode, useState } from 'react'
 import { Listbox, Transition } from '@headlessui/react'
 import { Check, ChevronUpDown } from '@/components/icons/outline'
