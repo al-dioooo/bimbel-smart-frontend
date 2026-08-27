@@ -227,10 +227,19 @@ function Highlight<T extends React.ElementType = 'div'>({
         setBoundsState((prev) => (prev === null ? prev : null))
     }, [])
 
-    React.useEffect(() => {
+    // `value`/`defaultValue` re-seed the active item, but hover and click also
+    // drive it locally, so it cannot simply be derived. Adjusting during render
+    // re-seeds without an effect — and without the extra commit the effect cost.
+    const [lastSeed, setLastSeed] = React.useState<{
+        value?: string | null
+        defaultValue?: string | null
+    }>({ value, defaultValue })
+
+    if (lastSeed.value !== value || lastSeed.defaultValue !== defaultValue) {
+        setLastSeed({ value, defaultValue })
         if (value !== undefined) setActiveValue(value)
         else if (defaultValue !== undefined) setActiveValue(defaultValue)
-    }, [value, defaultValue])
+    }
 
     const id = React.useId()
 

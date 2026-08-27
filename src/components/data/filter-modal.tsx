@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import moment from 'moment'
 
 import Modal from '@/components/modal'
@@ -49,9 +49,10 @@ export default function FilterModal({ value, fields, onSubmit, onRemove }: Props
     const [draft, setDraft] = useState<Record<string, string>>(value)
 
     // Re-seed the draft each time the sheet opens, so cancelling discards edits.
-    useEffect(() => {
-        if (isOpen) setDraft(value)
-    }, [isOpen, value])
+    const openModal = () => {
+        setDraft(value)
+        setIsOpen(true)
+    }
 
     const activeCount = Object.keys(value).length
 
@@ -77,7 +78,7 @@ export default function FilterModal({ value, fields, onSubmit, onRemove }: Props
         <>
             <button
                 type="button"
-                onClick={() => setIsOpen(true)}
+                onClick={openModal}
                 className="inline-flex cursor-pointer items-center gap-2 px-4 py-2.5 text-xs font-medium transition border border-neutral-200 bg-neutral-50 hover:bg-neutral-100 rounded-full active:scale-95"
             >
                 <FilterIcon className="w-4 h-4" />

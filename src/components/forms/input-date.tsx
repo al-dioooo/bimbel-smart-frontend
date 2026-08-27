@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useState } from "react"
 import moment from "moment"
 
 import { Calendar } from "@/components/ui/calendar"
@@ -14,17 +14,20 @@ type Props = {
 }
 
 export default function InputDate({ value, onChange, placeholder = "Pilih tanggal" }: Props) {
-    const [date, setDate] = useState<Date | undefined>(value)
+    // Both call sites drive this from their own state, so `value` is the source
+    // of truth for the selection and does not need mirroring into state.
+    const date = value
+
+    // The visible month *is* local — the user can page through months without
+    // selecting anything — but it re-seeds whenever `value` changes. Adjusting
+    // it during render keeps that behaviour without an effect and without
+    // pinning the calendar to the selected month.
     const [month, setMonth] = useState<Date | undefined>(value)
+    const [lastValue, setLastValue] = useState<Date | undefined>(value)
 
-    useEffect(() => {
-        setDate(value)
+    if (value !== lastValue) {
+        setLastValue(value)
         if (value) setMonth(value)
-    }, [value])
-
-    const updateValue = (next: Date | undefined) => {
-        setDate(next)
-        onChange(next)
     }
 
     return (
@@ -47,7 +50,7 @@ export default function InputDate({ value, onChange, placeholder = "Pilih tangga
                     captionLayout="dropdown"
                     month={month}
                     onMonthChange={setMonth}
-                    onSelect={updateValue}
+                    onSelect={onChange}
                 />
             </PopoverPanel>
         </Popover>

@@ -1,8 +1,10 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { Fragment, ReactNode, useState } from 'react'
+import { Fragment, ReactNode } from 'react'
 import { Listbox, Transition } from '@headlessui/react'
 import { Check, ChevronUpDown } from '@/components/icons/outline'
-import { useEffect } from 'react'
+
+/** Stable reference for "nothing selected", so Listbox sees an unchanged value. */
+const NONE: any = {}
 
 type Props = {
     selection?: any[]
@@ -19,26 +21,19 @@ type Props = {
 }
 
 export default function SelectDescription({ selection = [], isLoading, value, placeholder, keyValue = () => { }, title, description = () => "", onChange = () => { }, disabled = false, error, reverse = false }: Props) {
-    const [selected, setSelected] = useState(value ? (selection.find((row) => keyValue(row) == value) ?? {}) : {})
+    // Every call site is controlled: `value` holds the selected row's key and
+    // `onChange` writes it back. Looking the row up during render replaces two
+    // effects that mirrored it into state — including one that fired
+    // `onChange(undefined)` on mount, wiping the parent's value whenever
+    // `selection` had not finished loading yet.
+    const selected = selection.find((row) => keyValue(row) == value) ?? NONE
 
-    // keyValue/onChange are inline lambdas at every call site, so they change
-    // identity each render; depending on them here would loop.
-    useEffect(() => {
-        onChange(keyValue(selected))
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [selected])
-
-    useEffect(() => {
-        if (value && selection.length !== 0 && !isLoading) {
-            setSelected(selection.find((row) => keyValue(row) == value) ?? {})
-        }
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [isLoading, value])
+    const handleChange = (row: any) => onChange(keyValue(row))
 
     const hasError = Array.isArray(error) ? error.length > 0 : !!error
 
     return (
-        <Listbox value={selected} onChange={setSelected} disabled={disabled}>
+        <Listbox value={selected} onChange={handleChange} disabled={disabled}>
             <div className="relative mt-1">
                 <Listbox.Button className={`${hasError ? 'border-red-300' : 'border-neutral-200'} ${!isLoading && title(selected) ? "" : "text-neutral-500"} ${disabled ? "bg-neutral-50 opacity-75" : ""} w-full p-2 text-sm text-left transition border focus:outline-none rounded-xl hover:border-neutral-400 focus:border-neutral-400 focus:ring focus:ring-neutral-200`}>
                     <span className={`block truncate`}>

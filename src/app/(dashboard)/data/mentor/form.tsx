@@ -1,6 +1,6 @@
 "use client"
 
-import { FormEvent, useEffect, useState } from "react"
+import { FormEvent, useState } from "react"
 
 import PrimaryButton from "@/components/buttons/primary"
 import Description from "@/components/forms/description"
@@ -20,35 +20,24 @@ type Props = {
     errors: Record<string, string[]>
 }
 
-export default function Form({ data, isLoading = false, onSubmit, errors }: Props) {
+export default function Form({ data, onSubmit, errors }: Props) {
+    // Seeded straight from `data`. The caller keys this component on the record
+    // id, so a freshly loaded mentor remounts and re-seeds; a background SWR
+    // revalidation of the same record no longer wipes what is being typed.
+
     // ── User fields ───────────────────────────────────────────
-    const [name, setName] = useState<string>("")
-    const [username, setUsername] = useState<string>("")
-    const [email, setEmail] = useState<string>("")
+    const [name, setName] = useState<string>(data?.user?.name ?? "")
+    const [username, setUsername] = useState<string>(data?.user?.username ?? "")
+    const [email, setEmail] = useState<string>(data?.user?.email ?? "")
     const [password, setPassword] = useState<string>("")
     const [passwordConfirmation, setPasswordConfirmation] = useState<string>("")
 
     // ── Mentor fields (dari model Mentor.php) ────────────────
-    const [tempatTanggalLahir, setTempatTanggalLahir] = useState<string>("")
-    const [kontak, setKontak] = useState<string>("")
-    const [nik, setNik] = useState<string>("")
-    const [npwp, setNpwp] = useState<string>("")
-    const [alamat, setAlamat] = useState<string>("")
-
-    // Prefill kalau dipakai untuk edit
-    useEffect(() => {
-        if (!data || isLoading) return
-
-        setName(data.user?.name ?? "")
-        setUsername(data.user?.username ?? "")
-        setEmail(data.user?.email ?? "")
-
-        setTempatTanggalLahir(data.tempat_tanggal_lahir ?? "")
-        setKontak(data.kontak ?? "")
-        setNik(data.nik ?? "")
-        setNpwp(data.npwp ?? "")
-        setAlamat(data.alamat ?? "")
-    }, [data, isLoading])
+    const [tempatTanggalLahir, setTempatTanggalLahir] = useState<string>(data?.tempat_tanggal_lahir ?? "")
+    const [kontak, setKontak] = useState<string>(data?.kontak ?? "")
+    const [nik, setNik] = useState<string>(data?.nik ?? "")
+    const [npwp, setNpwp] = useState<string>(data?.npwp ?? "")
+    const [alamat, setAlamat] = useState<string>(data?.alamat ?? "")
 
     const submitHandler = (e: FormEvent) => {
         e.preventDefault()

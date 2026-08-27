@@ -1,6 +1,6 @@
 'use client'
 
-import { useEffect, useMemo, useState } from 'react'
+import { useEffect, useMemo, useRef } from 'react'
 import moment from 'moment'
 
 import AbsensiAction from '@/components/absensi-action'
@@ -56,12 +56,14 @@ export default function AbsensiTable({
         [siswaData]
     )
 
-    // Seed the draft from what is already saved, once per fetch.
-    const [seededKey, setSeededKey] = useState<string | null>(null)
+    // Seed the draft from what is already saved, once per fetch. The guard is
+    // bookkeeping that never affects the render, so it lives in a ref — as state
+    // it made this effect set state that only fed the effect's own condition.
+    const seededKeyRef = useRef<string | null>(null)
     useEffect(() => {
         if (!hasKelas || isLoadingAbsensi) return
         const key = `${kelasId}:${from ?? ''}:${to ?? ''}:${(absensiData ?? []).length}`
-        if (seededKey === key) return
+        if (seededKeyRef.current === key) return
 
         const next: AttendanceDraft = {}
         ;((absensiData as Absensi[] | undefined) ?? []).forEach((row) => {
@@ -71,7 +73,7 @@ export default function AbsensiTable({
             }
         })
 
-        setSeededKey(key)
+        seededKeyRef.current = key
         onDraftChange(next)
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [absensiData, isLoadingAbsensi, hasKelas, kelasId, from, to])
