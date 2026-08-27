@@ -1,237 +1,134 @@
 'use client'
-/* eslint-disable @typescript-eslint/no-explicit-any */
-// import { swrFetcher } from "@/helpers/swr-fetcher"
-// import Link from "next/link"
-import moment from "moment"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useRef, useState } from "react"
 
-import { AutoHeight } from "@/components/auto-height"
-import { CircleDashedPlus, Search } from "@/components/icons/outline"
-import MenuAction from "@/components/menu-action"
-
+import PageHeader from "@/components/ui/page-header"
 import OutlineButton from "@/components/buttons/outline"
-import { useJadwal } from "@/hooks/repositories/use-jadwal"
-import Filter from "./filter"
+import MenuAction from "@/components/menu-action"
 import Pagination from "@/components/pagination"
-import { ChevronUpDown } from "@/components/icons/dynamic"
+import { CircleDashedPlus } from "@/components/icons/outline"
+
+import DataTable, { type Column } from "@/components/data/data-table"
+import SearchInput from "@/components/data/search-input"
+import FilterModal, { type SelectOption } from "@/components/data/filter-modal"
+import ConfirmDialog from "@/components/data/confirm-dialog"
+import { useListParams } from "@/components/data/use-list-params"
+import { useDeleteResource } from "@/components/data/use-delete-resource"
+
+import { useJadwal } from "@/hooks/repositories/use-jadwal"
+import { useKelas } from "@/hooks/repositories/use-kelas"
+import { formatDate, formatTimeRange } from "@/lib/format"
+import type { Jadwal, Kelas } from "@/lib/types"
+
+const FILTER_KEYS = ['kelas_id', 'from', 'to']
 
 export default function ListJadwalPage() {
-    const router = useRouter()
-    const pathname = usePathname()
+    const {
+        page, search, orderBy, direction,
+        searchTemp, setSearchTemp,
+        toggleSort, updateFilter, removeFilter, activeFilters,
+    } = useListParams(FILTER_KEYS)
 
-    // Query parameters
-    const searchParams = useSearchParams()
-    const [searchTemp, setSearchTemp] = useState(searchParams.get('search') ?? "")
-
-    const searchInput = useRef<any>(undefined)
-
-    const page = searchParams.get('page')
-    const search = searchParams.get('search')
-    const nama = searchParams.get('nama')
-    const from = searchParams.get('from')
-    const to = searchParams.get('to')
-
-    const orderBy = searchParams.get('order_by')
-    const direction = searchParams.get('direction')
-
-    const { data, mutate, error, isLoading, isValidating } = useJadwal({
+    const { data, mutate, error, isLoading } = useJadwal({
         page,
-
         search,
-        nama,
-        from,
-        to,
-
+        ...activeFilters,
         order_by: orderBy,
-        direction
+        direction,
     })
 
-    useEffect(() => {
-        const timeOut = setTimeout(() => {
-            const current = new URLSearchParams(searchParams.toString())
+    const { data: kelasOptions, isLoading: isLoadingKelas } = useKelas({ paginate: false })
 
-            if (searchTemp !== search) {
-                if (searchTemp !== search) {
-                    current.set('search', searchTemp)
-                }
-            }
+    // The list endpoint returns a flat array when paginate=false.
+    const kelasSelectOptions: SelectOption[] = ((kelasOptions as unknown as Kelas[]) ?? []).map((kelas) => ({
+        value: kelas.id,
+        label: kelas.nama,
+        description: kelas.tingkat,
+    }))
 
-            if (searchTemp === "") {
-                current.delete('search')
-            }
+    const remove = useDeleteResource<Jadwal>({
+        endpoint: '/jadwal',
+        onDeleted: () => mutate(),
+        successMessage: 'Jadwal berhasil dihapus',
+    })
 
-            router.replace(`${pathname}?${current.toString()}`)
-        }, 500)
-
-        return () => clearTimeout(timeOut)
-    }, [searchTemp])
-
-    // Data sort handler
-    const toggleSort = (value: string) => {
-        const params = new URLSearchParams(searchParams.toString())
-
-        const currentOrder = params.get("order_by")
-        const currentDirection = params.get("direction")
-
-        // If switching column OR current direction is null/desc → set asc
-        if (currentOrder !== value || !currentDirection || currentDirection === "desc") {
-            params.set("order_by", value)
-            params.set("direction", "asc")
-        } else {
-            // Otherwise toggle to desc
-            params.set("order_by", value)
-            params.set("direction", "desc")
-        }
-
-        router.replace(`${pathname}?${params.toString()}`)
-    }
-
-    // Data filter handlers
-    const updateFilter = (values: Record<string, string | null>) => {
-        const params = new URLSearchParams(searchParams.toString())
-
-        // Set new values
-        Object.entries(values).forEach(([key, value]) => {
-            if (value === null || value === "") {
-                params.delete(key)
-            } else {
-                params.set(key, String(value))
-            }
-        })
-
-        router.replace(`${pathname}?${params.toString()}`)
-    }
-
-    const removeFilter = () => {
-        router.replace(pathname)
-    }
+    // Every header here used to sort by an unrelated column: "Kelas" sorted by
+    // `nama`, "Mentor" by `tingkat`, "Tanggal" by `created_at`, "Jam" by
+    // `updated_at`. Kelas and mentor live on related tables, so they are not
+    // sortable through the current endpoint and are rendered as plain headers.
+    const columns: Column<Jadwal>[] = [
+        { key: 'kelas', header: 'Kelas', cellClassName: 'font-medium text-neutral-900', render: (row) => row.kelas?.nama ?? '-' },
+        { key: 'mentor', header: 'Mentor', render: (row) => row.kelas?.mentor?.user?.name ?? '-' },
+        { key: 'tanggal', header: 'Tanggal', sortKey: 'tanggal', render: (row) => formatDate(row.tanggal as unknown as string) },
+        { key: 'jam', header: 'Jam', sortKey: 'waktu_mulai', render: (row) => formatTimeRange(row.waktu_mulai, row.waktu_selesai) },
+        { key: 'materi', header: 'Materi', render: (row) => row.materi || '-' },
+        {
+            key: 'actions',
+            header: <span className="sr-only">Aksi</span>,
+            headerClassName: 'relative',
+            cellClassName: 'text-right',
+            render: (row) => (
+                <MenuAction
+                    showDetail={false}
+                    editLink={`/jadwal/${row.id}/edit`}
+                    onDelete={() => remove.request(row)}
+                />
+            ),
+        },
+    ]
 
     return (
         <div className="space-y-6">
-            {/* Title */}
-            <h1 className="text-3xl font-semibold">List Jadwal</h1>
+            <PageHeader title="List Jadwal" />
 
             <div className="space-y-6">
-                <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center sm:space-x-2">
-                        <div className="relative hidden sm:block">
-                            <div className="absolute inset-y-0 flex items-center pl-3 pointer-events-none">
-                                <Search className="w-4 h-4" />
-                            </div>
-                            <input ref={searchInput} onChange={(e) => setSearchTemp(e.target.value)} value={searchTemp} type="text" placeholder="Cari data" autoComplete="off" className="w-64 py-3 pl-8 pr-4 text-xs transition border border-neutral-200 focus:outline-none rounded-full focus:border-sky-400 focus:ring-2 focus:ring-sky-200" />
-                        </div>
-                        <Filter onSubmit={updateFilter} onRemove={removeFilter} data={Object.fromEntries(Object.entries({ nama, from, to }).filter(([_, v]) => v != null))} />
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <SearchInput value={searchTemp} onChange={setSearchTemp} placeholder="Cari kelas" />
+                        <FilterModal
+                            value={activeFilters}
+                            onSubmit={updateFilter}
+                            onRemove={removeFilter}
+                            fields={[
+                                {
+                                    type: 'select',
+                                    name: 'kelas_id',
+                                    label: 'Kelas',
+                                    placeholder: 'Pilih kelas',
+                                    options: kelasSelectOptions,
+                                    isLoading: isLoadingKelas,
+                                },
+                                { type: 'date', name: 'from', label: 'Dari Tanggal' },
+                                { type: 'date', name: 'to', label: 'Sampai Tanggal' },
+                            ]}
+                        />
                     </div>
-                    <div className="flex items-center space-x-2">
-                        <OutlineButton as="link" href="/jadwal/create" className="text-xs" icon={<CircleDashedPlus className="w-5 h-5" />}>Tambah Jadwal</OutlineButton>
-                    </div>
+                    <OutlineButton as="link" href="/jadwal/create" className="text-xs" icon={<CircleDashedPlus className="w-5 h-5" />}>
+                        Tambah Jadwal
+                    </OutlineButton>
                 </div>
-                <div className="overflow-x-auto border border-neutral-200 rounded-xl">
-                    <AutoHeight>
-                        <table className="min-w-full overflow-x-auto divide-y divide-neutral-200">
-                            <thead className="bg-neutral-50 rounded-t-3xl">
-                                <tr>
-                                    <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('nama')}>
-                                            <span>Kelas</span>
-                                            <span><ChevronUpDown direction={orderBy === ('nama') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
-                                        </button>
-                                    </th>
-                                    <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('tingkat')}>
-                                            <span>Mentor</span>
-                                            <span><ChevronUpDown direction={orderBy === ('tingkat') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
-                                        </button>
-                                    </th>
-                                    <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('created_at')}>
-                                            <span>Tanggal</span>
-                                            <span><ChevronUpDown direction={orderBy === ('created_at') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
-                                        </button>
-                                    </th>
-                                    <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('updated_at')}>
-                                            <span>Jam</span>
-                                            <span><ChevronUpDown direction={orderBy === ('updated_at') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
-                                        </button>
-                                    </th>
-                                    <th scope="col" className="relative px-6 py-3"><span className="sr-only">Action</span></th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-neutral-200">
-                                {/* When loading */}
-                                {isLoading && (
-                                    <tr className="text-center">
-                                        <td colSpan={100} className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            <div className="flex items-center justify-between space-x-4">
-                                                <hr className="grow border-current/50" /> <span>Loading Data</span> <hr className="grow border-current/50" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
 
-                                {/* When error */}
-                                {error && (
-                                    <tr className="text-center">
-                                        <td colSpan={100} className="px-6 py-4 text-xs text-red-500 whitespace-nowrap">
-                                            <div className="flex items-center justify-between space-x-4">
-                                                <hr className="grow border-current/50" /> <span>Error Loading Data</span> <hr className="grow border-current/50" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-
-                                {/* When there are no list available */}
-                                {data?.data?.length === 0 && !search && !isLoading && (
-                                    <tr className="text-center">
-                                        <td colSpan={100} className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            <div className="flex items-center justify-between space-x-4">
-                                                <hr className="grow border-current/50" /> <span>No Data Available</span> <hr className="grow border-current/50" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-
-                                {/* When there are no list available on searching */}
-                                {data?.data?.length === 0 && search && !isLoading && (
-                                    <tr className="text-center">
-                                        <td colSpan={100} className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            <div className="flex items-center justify-between space-x-4">
-                                                <hr className="grow border-current/50" /> <span>No Result</span> <hr className="grow border-current/50" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-
-                                {(data && data.data && data.data.length > 0) && data.data.map((row) => (
-                                    <tr key={row.id} className="hover:bg-neutral-50">
-                                        <td className="px-6 py-4 text-xs font-medium text-neutral-900 whitespace-nowrap">
-                                            {row.kelas?.nama}
-                                        </td>
-                                        <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            {row.kelas?.mentor?.user?.name ?? '-'}
-                                        </td>
-                                        <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            {moment(row.tanggal).format('MMMM D, YYYY')}
-                                        </td>
-                                        <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            {moment(row.waktu_mulai, 'H:m').format('H:m')} - {moment(row.waktu_selesai, 'H:m').format('H:m')}
-                                        </td>
-                                        <td className="px-3 py-2 text-xs font-medium text-right whitespace-nowrap">
-                                            <div className="inline-flex items-center space-x-2">
-                                                <MenuAction showDetail={false} editLink={`/jadwal/${row.id}/edit`} deleteLink="" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </AutoHeight>
-                </div>
+                <DataTable
+                    columns={columns}
+                    rows={data?.data}
+                    rowKey={(row) => row.id}
+                    isLoading={isLoading}
+                    error={error}
+                    isFiltered={!!search || Object.keys(activeFilters).length > 0}
+                    orderBy={orderBy}
+                    direction={direction}
+                    onSort={toggleSort}
+                    emptyMessage="Belum ada jadwal"
+                />
             </div>
 
             <Pagination links={data?.links} from={data?.from} to={data?.to} total={data?.total} />
+
+            <ConfirmDialog
+                isOpen={remove.isOpen}
+                onClose={remove.cancel}
+                onConfirm={remove.confirm}
+                title="Hapus Jadwal"
+                message={<>Hapus jadwal <span className="font-semibold">{remove.target?.kelas?.nama}</span> pada {formatDate(remove.target?.tanggal as unknown as string)}?</>}
+            />
         </div>
     )
 }
