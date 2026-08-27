@@ -1,238 +1,84 @@
 'use client'
 
-// import { swrFetcher } from "@/helpers/swr-fetcher"
-// import Link from "next/link"
-import moment from "moment"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useRef, useState } from "react"
+import { use } from "react"
 
-import { AutoHeight } from "@/components/auto-height"
-import { CircleDashedPlus, Search } from "@/components/icons/outline"
-import MenuAction from "@/components/menu-action"
-
+import PageHeader from "@/components/ui/page-header"
 import OutlineButton from "@/components/buttons/outline"
-import { useKelas } from "@/hooks/repositories/use-kelas"
-import Filter from "./filter"
-import { Highlight, HighlightItem } from "@/components/base/highlight"
 import Pagination from "@/components/pagination"
-import { ChevronUpDown } from "@/components/icons/dynamic"
+import { Card } from "@/components/ui/card"
+import { ArrowNarrowLeft } from "@/components/icons/outline"
 
-export default function KonversiGajiMentorPage() {
-    const router = useRouter()
-    const pathname = usePathname()
+import DataTable, { type Column } from "@/components/data/data-table"
+import { useListParams } from "@/components/data/use-list-params"
 
-    // Query parameters
-    const searchParams = useSearchParams()
-    const [searchTemp, setSearchTemp] = useState(searchParams.get('search') ?? "")
+import { useReportGajiByMentor } from "@/hooks/repositories/use-report"
+import { formatCurrency, formatNumber, monthLabel } from "@/lib/format"
+import type { ReportGajiDetailRow } from "@/lib/types"
 
-    const searchInput = useRef<any>(undefined)
+export default function ReportGajiDetailPage({ params }: { params: Promise<{ id: string }> }) {
+    const { id } = use(params)
 
-    const page = searchParams.get('page')
-    const search = searchParams.get('search')
-    const nama = searchParams.get('nama')
-    const from = searchParams.get('from')
-    const to = searchParams.get('to')
+    const { page, orderBy, direction, toggleSort } = useListParams()
 
-    const orderBy = searchParams.get('order_by')
-    const direction = searchParams.get('direction')
-
-    const { data, mutate, error, isLoading, isValidating } = useKelas({ // use nya belom diubah
+    const { data, error, isLoading } = useReportGajiByMentor(Number(id), {
         page,
-
-        search,
-        nama,
-        from,
-        to,
-
         order_by: orderBy,
-        direction
+        direction,
     })
 
-    useEffect(() => {
-        const timeOut = setTimeout(() => {
-            const current = new URLSearchParams(searchParams.toString())
+    const rows = data?.data ?? []
+    const mentorName = rows[0]?.mentor
+    const total = rows.reduce((sum, row) => sum + Number(row.nominal ?? 0), 0)
 
-            if (searchTemp !== search) {
-                if (searchTemp !== search) {
-                    current.set('search', searchTemp)
-                }
-            }
-
-            if (searchTemp === "") {
-                current.delete('search')
-            }
-
-            router.replace(`${pathname}?${current.toString()}`)
-        }, 500)
-
-        return () => clearTimeout(timeOut)
-    }, [searchTemp])
-
-    // Data sort handler
-    const toggleSort = (value: string) => {
-        const params = new URLSearchParams(searchParams.toString())
-
-        const currentOrder = params.get("order_by")
-        const currentDirection = params.get("direction")
-
-        // If switching column OR current direction is null/desc → set asc
-        if (currentOrder !== value || !currentDirection || currentDirection === "desc") {
-            params.set("order_by", value)
-            params.set("direction", "asc")
-        } else {
-            // Otherwise toggle to desc
-            params.set("order_by", value)
-            params.set("direction", "desc")
-        }
-
-        router.replace(`${pathname}?${params.toString()}`)
-    }
-
-    // Data filter handlers
-    const updateFilter = (values: Record<string, string | null>) => {
-        const params = new URLSearchParams(searchParams.toString())
-
-        // Set new values
-        Object.entries(values).forEach(([key, value]) => {
-            if (value === null || value === "") {
-                params.delete(key)
-            } else {
-                params.set(key, String(value))
-            }
-        })
-
-        router.replace(`${pathname}?${params.toString()}`)
-    }
-
-    const removeFilter = () => {
-        router.replace(pathname)
-    }
+    const columns: Column<ReportGajiDetailRow>[] = [
+        { key: 'kelas', header: 'Kelas', cellClassName: 'font-medium text-neutral-900', render: (row) => row.kelas },
+        { key: 'bulan', header: 'Bulan', sortKey: 'bulan', render: (row) => monthLabel(row.bulan, row.tahun) },
+        { key: 'tarif', header: 'Tarif', render: (row) => formatCurrency(row.tarif) },
+        { key: 'kehadiran', header: 'Jumlah Kehadiran', render: (row) => formatNumber(row.jumlah_kehadiran) },
+        {
+            key: 'nominal',
+            header: 'Nominal',
+            cellClassName: 'font-medium text-emerald-600',
+            render: (row) => formatCurrency(row.nominal),
+        },
+    ]
 
     return (
         <div className="space-y-6">
-            {/* Title */}
-            <h1 className="text-3xl font-semibold">Konversi Gaji Mentor</h1>
+            <PageHeader
+                title={mentorName ? `Gaji ${mentorName}` : 'Detail Gaji Mentor'}
+                description="Rincian per kelas yang membentuk total gaji."
+                action={
+                    <OutlineButton
+                        as="link"
+                        href="/report/gaji"
+                        buttonType="secondary"
+                        className="text-xs"
+                        icon={<ArrowNarrowLeft className="w-4 h-4" />}
+                    >
+                        Kembali
+                    </OutlineButton>
+                }
+            />
 
-            <div className="space-y-6">
-                <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center sm:space-x-2">
-                        <div className="relative hidden sm:block">
-                            <div className="absolute inset-y-0 flex items-center pl-3 pointer-events-none">
-                                <Search className="w-4 h-4" />
-                            </div>
-                            <input ref={searchInput} onChange={(e) => setSearchTemp(e.target.value)} value={searchTemp} type="text" placeholder="Cari data" autoComplete="off" className="w-64 py-3 pl-8 pr-4 text-xs transition border border-neutral-200 focus:outline-none rounded-full focus:border-sky-400 focus:ring-2 focus:ring-sky-200" />
-                        </div>
-                        <Filter onSubmit={updateFilter} onRemove={removeFilter} data={Object.fromEntries(Object.entries({ nama, from, to }).filter(([_, v]) => v != null))} />
-                    </div>
-                </div>
-                
-                <div className="overflow-x-auto border border-neutral-200 rounded-xl">
-                    <AutoHeight>
-                        <table className="min-w-full overflow-x-auto divide-y divide-neutral-200">
-                            <thead className="bg-neutral-50 rounded-t-3xl">
-                                <tr>
-                                    <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('nama')}>
-                                            <span>No</span>
-                                            <span><ChevronUpDown direction={orderBy === ('nama') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
-                                        </button>
-                                    </th>
-                                    <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('tingkat')}>
-                                            <span>Bulan</span>
-                                            <span><ChevronUpDown direction={orderBy === ('tingkat') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
-                                        </button>
-                                    </th>
-                                    <th scope="col" className="px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">Mentor</th>
-                                    <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('created_at')}>
-                                            <span>Jumlah Kehadiran</span>
-                                            <span><ChevronUpDown direction={orderBy === ('created_at') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
-                                        </button>
-                                    </th>
-                                    <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('updated_at')}>
-                                            <span>Nominal</span>
-                                            <span><ChevronUpDown direction={orderBy === ('updated_at') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
-                                        </button>
-                                    </th>
-                                    <th scope="col" className="relative px-6 py-3"><span className="sr-only">Action</span></th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-neutral-200">
-                                {/* When loading */}
-                                {isLoading && (
-                                    <tr className="text-center">
-                                        <td colSpan={100} className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            <div className="flex items-center justify-between space-x-4">
-                                                <hr className="grow border-current/50" /> <span>Loading Data</span> <hr className="grow border-current/50" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
+            <Card>
+                <p className="text-xs font-medium text-neutral-500">Total Gaji</p>
+                <p className="mt-1 text-3xl font-bold text-emerald-600">
+                    {isLoading ? '—' : formatCurrency(total)}
+                </p>
+            </Card>
 
-                                {/* When error */}
-                                {error && (
-                                    <tr className="text-center">
-                                        <td colSpan={100} className="px-6 py-4 text-xs text-red-500 whitespace-nowrap">
-                                            <div className="flex items-center justify-between space-x-4">
-                                                <hr className="grow border-current/50" /> <span>Error Loading Data</span> <hr className="grow border-current/50" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-
-                                {/* When there are no list available */}
-                                {data?.data?.length === 0 && !search && !isLoading && (
-                                    <tr className="text-center">
-                                        <td colSpan={100} className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            <div className="flex items-center justify-between space-x-4">
-                                                <hr className="grow border-current/50" /> <span>No Data Available</span> <hr className="grow border-current/50" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-
-                                {/* When there are no list available on searching */}
-                                {data?.data?.length === 0 && search && !isLoading && (
-                                    <tr className="text-center">
-                                        <td colSpan={100} className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            <div className="flex items-center justify-between space-x-4">
-                                                <hr className="grow border-current/50" /> <span>No Result</span> <hr className="grow border-current/50" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-
-                                {(data && data.data && data.data.length > 0) && data.data.map((row) => (
-                                    <tr key={row.id} className="hover:bg-neutral-50">
-                                        <td className="px-6 py-4 text-xs font-medium text-neutral-900 whitespace-nowrap">
-                                            {row.nama}
-                                        </td>
-                                        <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            {row.tingkat}
-                                        </td>
-                                        <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            {row.mentor?.user?.name ?? '-'}
-                                        </td>
-                                        <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            {moment(row.created_at).format('MMMM D, YYYY')}
-                                        </td>
-                                        <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            {moment(row.updated_at).format('MMMM D, YYYY')}
-                                        </td>
-                                        <td className="px-3 py-2 text-xs font-medium text-right whitespace-nowrap">
-                                            <div className="inline-flex items-center space-x-2">
-                                                <OutlineButton as="link" href="/data/report/gaji" className="text-xs" icon={<CircleDashedPlus className="w-5 h-5" />}>Export</OutlineButton>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </AutoHeight>
-                </div>
-            </div>
+            <DataTable
+                columns={columns}
+                rows={data?.data}
+                rowKey={(row) => `${row.kelas_id}-${row.tahun}-${row.bulan}`}
+                isLoading={isLoading}
+                error={error}
+                orderBy={orderBy}
+                direction={direction}
+                onSort={toggleSort}
+                emptyMessage="Belum ada kehadiran tercatat untuk mentor ini"
+            />
 
             <Pagination links={data?.links} from={data?.from} to={data?.to} total={data?.total} />
         </div>

@@ -1,248 +1,116 @@
 'use client'
 
-// import { swrFetcher } from "@/helpers/swr-fetcher"
-// import Link from "next/link"
-import moment from "moment"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
-import { useEffect, useRef, useState } from "react"
-
-import { AutoHeight } from "@/components/auto-height"
-import { CircleDashedPlus, InfoCircle, Pencil, Plus, Search, Trash } from "@/components/icons/outline"
-import MenuAction from "@/components/menu-action"
-
+import PageHeader from "@/components/ui/page-header"
 import OutlineButton from "@/components/buttons/outline"
-import { useKelas } from "@/hooks/repositories/use-kelas"
-import { Highlight, HighlightItem } from "@/components/base/highlight"
 import Pagination from "@/components/pagination"
-import { ChevronUpDown } from "@/components/icons/dynamic"
-import Filter from "./filter"
+import { InfoCircle } from "@/components/icons/outline"
+
+import DataTable, { type Column } from "@/components/data/data-table"
+import SearchInput from "@/components/data/search-input"
+import FilterModal, { type SelectOption } from "@/components/data/filter-modal"
+import { useListParams } from "@/components/data/use-list-params"
+
+import { useReportAbsensi } from "@/hooks/repositories/use-report"
+import { useKelas } from "@/hooks/repositories/use-kelas"
+import { monthLabel } from "@/lib/format"
+import type { ReportAbsensiRow, Kelas } from "@/lib/types"
+
+const FILTER_KEYS = ['kelas_id', 'from', 'to']
 
 export default function ReportAbsensiPage() {
-    const router = useRouter()
-    const pathname = usePathname()
+    const {
+        page, search, orderBy, direction,
+        searchTemp, setSearchTemp,
+        toggleSort, updateFilter, removeFilter, activeFilters,
+    } = useListParams(FILTER_KEYS)
 
-    // Query parameters
-    const searchParams = useSearchParams()
-    const [searchTemp, setSearchTemp] = useState(searchParams.get('search') ?? "")
-
-    const searchInput = useRef<any>(undefined)
-
-    const page = searchParams.get('page')
-    const search = searchParams.get('search')
-    const nama = searchParams.get('nama')
-    const from = searchParams.get('from')
-    const to = searchParams.get('to')
-
-    const orderBy = searchParams.get('order_by')
-    const direction = searchParams.get('direction')
-
-    const { data, mutate, error, isLoading, isValidating } = useKelas({ //use nya belom diubah
+    // Previously this page called useKelas() — the source even noted
+    // "use nya belom diubah" — so the headers and the body described
+    // different things entirely.
+    const { data, error, isLoading } = useReportAbsensi({
         page,
-
         search,
-        nama,
-        from,
-        to,
-
+        ...activeFilters,
         order_by: orderBy,
-        direction
+        direction,
     })
 
-    useEffect(() => {
-        const timeOut = setTimeout(() => {
-            const current = new URLSearchParams(searchParams.toString())
+    const { data: kelasOptions, isLoading: isLoadingKelas } = useKelas({ paginate: false })
 
-            if (searchTemp !== search) {
-                if (searchTemp !== search) {
-                    current.set('search', searchTemp)
-                }
-            }
+    const kelasSelectOptions: SelectOption[] = ((kelasOptions as unknown as Kelas[]) ?? []).map((kelas) => ({
+        value: kelas.id,
+        label: kelas.nama,
+        description: kelas.tingkat,
+    }))
 
-            if (searchTemp === "") {
-                current.delete('search')
-            }
-
-            router.replace(`${pathname}?${current.toString()}`)
-        }, 500)
-
-        return () => clearTimeout(timeOut)
-    }, [searchTemp])
-
-    // Data sort handler
-    const toggleSort = (value: string) => {
-        const params = new URLSearchParams(searchParams.toString())
-
-        const currentOrder = params.get("order_by")
-        const currentDirection = params.get("direction")
-
-        // If switching column OR current direction is null/desc → set asc
-        if (currentOrder !== value || !currentDirection || currentDirection === "desc") {
-            params.set("order_by", value)
-            params.set("direction", "asc")
-        } else {
-            // Otherwise toggle to desc
-            params.set("order_by", value)
-            params.set("direction", "desc")
-        }
-
-        router.replace(`${pathname}?${params.toString()}`)
-    }
-
-    // Data filter handlers
-    const updateFilter = (values: Record<string, string | null>) => {
-        const params = new URLSearchParams(searchParams.toString())
-
-        // Set new values
-        Object.entries(values).forEach(([key, value]) => {
-            if (value === null || value === "") {
-                params.delete(key)
-            } else {
-                params.set(key, String(value))
-            }
-        })
-
-        router.replace(`${pathname}?${params.toString()}`)
-    }
-
-    const removeFilter = () => {
-        router.replace(pathname)
-    }
+    const columns: Column<ReportAbsensiRow>[] = [
+        { key: 'kelas', header: 'Kelas', sortKey: 'kelas', cellClassName: 'font-medium text-neutral-900', render: (row) => row.kelas },
+        { key: 'mentor', header: 'Mentor', render: (row) => row.mentor ?? '-' },
+        { key: 'bulan', header: 'Bulan', sortKey: 'bulan', render: (row) => monthLabel(row.bulan, row.tahun) },
+        { key: 'hadir', header: 'Hadir', sortKey: 'hadir', cellClassName: 'text-sky-600 font-medium', render: (row) => row.hadir },
+        { key: 'sakit', header: 'Sakit', sortKey: 'sakit', cellClassName: 'text-amber-600 font-medium', render: (row) => row.sakit },
+        { key: 'izin', header: 'Izin', sortKey: 'izin', cellClassName: 'text-neutral-600 font-medium', render: (row) => row.izin },
+        { key: 'alpa', header: 'Alpa', sortKey: 'alpa', cellClassName: 'text-red-600 font-medium', render: (row) => row.alpa },
+        {
+            key: 'actions',
+            header: <span className="sr-only">Aksi</span>,
+            headerClassName: 'relative',
+            cellClassName: 'text-right',
+            render: (row) => (
+                // Was hardcoded to /report/absensi/1 for every row.
+                <OutlineButton
+                    as="link"
+                    href={`/report/absensi/${row.kelas_id}`}
+                    className="text-xs"
+                    icon={<InfoCircle className="w-4 h-4" />}
+                >
+                    Detail
+                </OutlineButton>
+            ),
+        },
+    ]
 
     return (
         <div className="space-y-6">
-            {/* Title */}
-            <h1 className="text-3xl font-semibold">Rekap Absensi Kelas</h1>
+            <PageHeader
+                title="Rekap Absensi Kelas"
+                description="Ringkasan kehadiran siswa per kelas per bulan."
+            />
 
             <div className="space-y-6">
-                <div className="flex items-center justify-between text-xs">
-                    <div className="flex items-center sm:space-x-2">
-                        <div className="relative hidden sm:block">
-                            <div className="absolute inset-y-0 flex items-center pl-3 pointer-events-none">
-                                <Search className="w-4 h-4" />
-                            </div>
-                            <input ref={searchInput} onChange={(e) => setSearchTemp(e.target.value)} value={searchTemp} type="text" placeholder="Cari absensi" autoComplete="off" className="w-64 py-3 pl-8 pr-4 text-xs transition border border-neutral-200 focus:outline-none rounded-full focus:border-sky-400 focus:ring-2 focus:ring-sky-200" />
-                        </div>
-                        <Filter onSubmit={updateFilter} onRemove={removeFilter} data={Object.fromEntries(Object.entries({ nama, from, to }).filter(([_, v]) => v != null))} />
-                    </div>
+                <div className="flex flex-wrap items-center gap-2">
+                    <SearchInput value={searchTemp} onChange={setSearchTemp} placeholder="Cari kelas atau mentor" />
+                    <FilterModal
+                        value={activeFilters}
+                        onSubmit={updateFilter}
+                        onRemove={removeFilter}
+                        fields={[
+                            {
+                                type: 'select',
+                                name: 'kelas_id',
+                                label: 'Kelas',
+                                placeholder: 'Semua kelas',
+                                options: kelasSelectOptions,
+                                isLoading: isLoadingKelas,
+                            },
+                            { type: 'date', name: 'from', label: 'Dari Tanggal' },
+                            { type: 'date', name: 'to', label: 'Sampai Tanggal' },
+                        ]}
+                    />
                 </div>
 
-                <div className="overflow-x-auto border border-neutral-200 rounded-xl">
-                    <AutoHeight>
-                        <table className="min-w-full overflow-x-auto divide-y divide-neutral-200">
-                            <thead className="bg-neutral-50 rounded-t-3xl">
-                                <tr>
-                                    <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('bulan')}>
-                                            <span>Bulan</span>
-                                            <span><ChevronUpDown direction={orderBy === ('bulan') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
-                                        </button>
-                                    </th>
-                                    <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('hadir')}>
-                                            <span>Hadir</span>
-                                            <span><ChevronUpDown direction={orderBy === ('hadir') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
-                                        </button>
-                                    </th>
-                                    <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('sakit')}>
-                                            <span>Sakit</span>
-                                            <span><ChevronUpDown direction={orderBy === ('sakit') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
-                                        </button>
-                                    </th>
-                                    <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('izin')}>
-                                            <span>Izin</span>
-                                            <span><ChevronUpDown direction={orderBy === ('izin') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
-                                        </button>
-                                    </th>
-                                    <th scope="col" className="cursor-pointer px-6 py-3 text-xs font-medium text-left uppercase text-neutral-500 whitespace-nowrap">
-                                        <button className="flex cursor-pointer items-center space-x-1 text-xs font-medium text-left uppercase text-neutral-500" onClick={() => toggleSort('alpa')}>
-                                            <span>Alpa</span>
-                                            <span><ChevronUpDown direction={orderBy === ('alpa') ? (direction === 'asc' ? 'up' : 'down') : false} className="w-4 h-4" strokeWidth={2} /></span>
-                                        </button>
-                                    </th>
-                                    <th scope="col" className="relative px-6 py-3"><span className="sr-only">Action</span></th>
-                                </tr>
-                            </thead>
-                            <tbody className="bg-white divide-y divide-neutral-200">
-                                {/* When loading */}
-                                {isLoading && (
-                                    <tr className="text-center">
-                                        <td colSpan={100} className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            <div className="flex items-center justify-between space-x-4">
-                                                <hr className="grow border-current/50" /> <span>Loading Data</span> <hr className="grow border-current/50" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-
-                                {/* When error */}
-                                {error && (
-                                    <tr className="text-center">
-                                        <td colSpan={100} className="px-6 py-4 text-xs text-red-500 whitespace-nowrap">
-                                            <div className="flex items-center justify-between space-x-4">
-                                                <hr className="grow border-current/50" /> <span>Error Loading Data</span> <hr className="grow border-current/50" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-
-                                {/* When there are no list available */}
-                                {data?.data?.length === 0 && !search && !isLoading && (
-                                    <tr className="text-center">
-                                        <td colSpan={100} className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            <div className="flex items-center justify-between space-x-4">
-                                                <hr className="grow border-current/50" /> <span>No Data Available</span> <hr className="grow border-current/50" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-
-                                {/* When there are no list available on searching */}
-                                {data?.data?.length === 0 && search && !isLoading && (
-                                    <tr className="text-center">
-                                        <td colSpan={100} className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            <div className="flex items-center justify-between space-x-4">
-                                                <hr className="grow border-current/50" /> <span>No Result</span> <hr className="grow border-current/50" />
-                                            </div>
-                                        </td>
-                                    </tr>
-                                )}
-
-                                {(data && data.data && data.data.length > 0) && data.data.map((row) => (
-                                    <tr key={row.id} className="hover:bg-neutral-50">
-                                        <td className="px-6 py-4 text-xs font-medium text-neutral-900 whitespace-nowrap">
-                                            {row.nama}
-                                        </td>
-                                        <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            {row.tingkat}
-                                        </td>
-                                        <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            {row.mentor?.user?.name ?? '-'}
-                                        </td>
-                                        <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            {moment(row.created_at).format('MMMM D, YYYY')}
-                                        </td>
-                                        <td className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
-                                            {moment(row.updated_at).format('MMMM D, YYYY')}
-                                        </td>
-                                        <td className="px-3 py-2 text-xs font-medium text-right whitespace-nowrap">
-                                            <div className="inline-flex items-center space-x-2">
-                                                <OutlineButton as="link" href="/report/absensi/1" className="text-xs" icon={<InfoCircle className="w-5 h-5" />}>Lihat Detail</OutlineButton>
-                                            </div>
-                                            <div className="inline-flex items-center space-x-2">
-                                                <OutlineButton as="link" href="/report/absensi/1" className="text-xs" icon={<InfoCircle className="w-5 h-5" />}>Export</OutlineButton>
-                                            </div>
-                                            <div className="inline-flex items-center space-x-2">
-                                                <OutlineButton buttonType="danger" as="link" href="/report/absensi/1" className="text-xs" icon={<Trash className="w-5 h-5" />}>Delete</OutlineButton>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                ))}
-                            </tbody>
-                        </table>
-                    </AutoHeight>
-                </div>
+                <DataTable
+                    columns={columns}
+                    rows={data?.data}
+                    rowKey={(row) => `${row.kelas_id}-${row.tahun}-${row.bulan}`}
+                    isLoading={isLoading}
+                    error={error}
+                    isFiltered={!!search || Object.keys(activeFilters).length > 0}
+                    orderBy={orderBy}
+                    direction={direction}
+                    onSort={toggleSort}
+                    emptyMessage="Belum ada data absensi"
+                />
             </div>
 
             <Pagination links={data?.links} from={data?.from} to={data?.to} total={data?.total} />
