@@ -6,12 +6,15 @@ const AUTH_COOKIE = "bimbel_smart_auth_token"
 /**
  * Token gate for the whole app.
  *
+ * Next.js 16 renamed the `middleware` convention to `proxy`; the file and the
+ * named export follow that. The runtime is Node.js and is not configurable.
+ *
  * The previous version also guarded `/admin/*` prefixes that do not exist,
  * redirected to a `/forbidden` route that was never built, and read
  * `NEXT_PUBLIC_API_URL`, which is not defined anywhere (the app uses API_URL).
  * Role-based access is not modelled in the UI yet, so this stays a token check.
  */
-export function middleware(req: NextRequest) {
+export function proxy(req: NextRequest) {
     const token = req.cookies.get(AUTH_COOKIE)?.value ?? null
     const isLoginRoute = req.nextUrl.pathname === "/login"
 
