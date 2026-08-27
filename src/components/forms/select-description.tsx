@@ -14,27 +14,33 @@ type Props = {
     description?: (row: any) => ReactNode
     onChange?: (value: any) => void
     disabled?: boolean
-    error?: string[]
+    error?: boolean | string[]
     reverse?: boolean
 }
 
 export default function SelectDescription({ selection = [], isLoading, value, placeholder, keyValue = () => { }, title, description = () => "", onChange = () => { }, disabled = false, error, reverse = false }: Props) {
     const [selected, setSelected] = useState(value ? (selection.find((row) => keyValue(row) == value) ?? {}) : {})
 
+    // keyValue/onChange are inline lambdas at every call site, so they change
+    // identity each render; depending on them here would loop.
     useEffect(() => {
         onChange(keyValue(selected))
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [selected])
 
     useEffect(() => {
         if (value && selection.length !== 0 && !isLoading) {
             setSelected(selection.find((row) => keyValue(row) == value) ?? {})
         }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [isLoading, value])
+
+    const hasError = Array.isArray(error) ? error.length > 0 : !!error
 
     return (
         <Listbox value={selected} onChange={setSelected} disabled={disabled}>
             <div className="relative mt-1">
-                <Listbox.Button className={`${error ? 'border-red-200' : 'border-neutral-200'} ${!isLoading && title(selected) ? "" : "text-neutral-500"} ${disabled ? "bg-neutral-50 opacity-75" : ""} w-full p-2 text-sm text-left transition border focus:outline-none rounded-xl hover:border-neutral-400 focus:border-neutral-400 focus:ring focus:ring-neutral-200`}>
+                <Listbox.Button className={`${hasError ? 'border-red-300' : 'border-neutral-200'} ${!isLoading && title(selected) ? "" : "text-neutral-500"} ${disabled ? "bg-neutral-50 opacity-75" : ""} w-full p-2 text-sm text-left transition border focus:outline-none rounded-xl hover:border-neutral-400 focus:border-neutral-400 focus:ring focus:ring-neutral-200`}>
                     <span className={`block truncate`}>
                         {isLoading ? "Loading Data" : title(selected) ?? placeholder}
                     </span>
@@ -50,7 +56,7 @@ export default function SelectDescription({ selection = [], isLoading, value, pl
                     leave="transition ease-in duration-100"
                     leaveFrom="opacity-100"
                     leaveTo="opacity-0">
-                    <Listbox.Options className="absolute z-10 w-full p-1 mt-1 overflow-auto text-base bg-white border shadow-lg rounded-xl max-h-60 border-neutral-200 focus:outline-none sm:text-sm">
+                    <Listbox.Options className="absolute z-50 w-full p-1 mt-1 overflow-auto text-base bg-white border shadow-lg rounded-xl max-h-60 border-neutral-200 focus:outline-none sm:text-sm">
                         {selection.length ? selection?.map((row, index) => (
                             <Listbox.Option
                                 key={index}

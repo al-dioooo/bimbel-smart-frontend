@@ -6,6 +6,8 @@ import { use, useState } from "react"
 import Form from "../../form"
 import { useKelasById } from "@/hooks/repositories/use-kelas"
 
+type ApiError = { response?: { status?: number; data?: { errors?: Record<string, string[]> } } }
+
 export default function EditKelas({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter()
 
@@ -13,16 +15,16 @@ export default function EditKelas({ params }: { params: Promise<{ id: string }> 
 
     const { data, mutate, isLoading } = useKelasById(parseInt(id))
 
-    const [errors, setErrors] = useState<any>({})
+    const [errors, setErrors] = useState<Record<string, string[]>>({})
 
-    const submitHandler = (data: any) => {
+    const submitHandler = (data: Record<string, unknown>) => {
         api.patch(`/kelas/${id}`, data).then(() => {
-            mutate(data)
+            // Revalidate from the server rather than writing the partial payload in.
+            mutate()
             router.push('/data/kelas')
-        }).catch((error) => {
-            if (error.response?.status === 422) {
-                setErrors(error.response.data.errors)
-            }
+        }).catch((error: unknown) => {
+            const response = (error as ApiError).response
+            if (response?.status === 422) setErrors(response.data?.errors ?? {})
         })
     }
 

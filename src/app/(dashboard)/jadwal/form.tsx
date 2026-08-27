@@ -7,7 +7,6 @@ import Description from "@/components/forms/description"
 import FormSection from "@/components/forms/form-section"
 import Input from "@/components/forms/input"
 import Label from "@/components/forms/label"
-import Separator from "@/components/separator"
 import { useKelas } from "@/hooks/repositories/use-kelas"
 import SelectDescription from "@/components/forms/select-description"
 import InputDate from "@/components/forms/input-date"
@@ -27,12 +26,12 @@ type Jadwal = {
 type Props = {
     data?: Jadwal
     isLoading?: boolean
-    onSubmit: (value: any) => void
-    errors: any
+    onSubmit: (value: Record<string, unknown>) => void
+    errors: Record<string, string[]>
 }
 
 export default function Form({ data, isLoading = false, onSubmit, errors }: Props) {
-    const [kelasId, setKelasId] = useState<any>("")
+    const [kelasId, setKelasId] = useState<string | number>("")
 
     const [tanggal, setTanggal] = useState<string>("")
     const [waktuMulai, setWaktuMulai] = useState<string>("")
@@ -75,8 +74,8 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                 <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                         <Label htmlFor="kelas_id" value="Kelas ID" />
-                        {/* @ts-expect-error */}
-                        <SelectDescription placeholder="Pilih Kelas" title={(value) => value?.nama} isLoading={isLoadingMentorDataList} description={(value) => value.tingkat} onChange={(value: any) => setKelasId(value)} keyValue={(value) => value.id} value={kelasId} error={errors.kelas_id} selection={kelasDataList} />
+                        {/* @ts-expect-error SelectDescription is intentionally untyped over its selection rows */}
+                        <SelectDescription placeholder="Pilih Kelas" title={(value) => value?.nama} isLoading={isLoadingMentorDataList} description={(value) => value.tingkat} onChange={(value: unknown) => setKelasId(value)} keyValue={(value) => value.id} value={kelasId} error={errors.kelas_id} selection={kelasDataList} />
                         <Description value="" error={errors.kelas_id} />
                     </div>
                     
@@ -92,7 +91,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="waktu_mulai"
                             type="time"
                             value={waktuMulai}
-                            onChange={(e: any) => setWaktuMulai(e.target.value)}
+                            onChange={(e) => setWaktuMulai(e.target.value)}
                             error={errors.waktu_mulai}
                         />
                         <Description value="" error={errors.waktu_mulai} />
@@ -104,7 +103,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="waktu_selesai"
                             type="time"
                             value={waktuSelesai}
-                            onChange={(e: any) => setWaktuSelesai(e.target.value)}
+                            onChange={(e) => setWaktuSelesai(e.target.value)}
                             error={errors.waktu_selesai}
                         />
                         <Description value="" error={errors.waktu_selesai} />
@@ -116,7 +115,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="materi"
                             placeholder="Materi yang akan diajarkan"
                             value={materi}
-                            onChange={(e: any) => setMateri(e.target.value)}
+                            onChange={(e) => setMateri(e.target.value)}
                             error={errors.materi}
                         />
                         <Description value="" error={errors.materi} />

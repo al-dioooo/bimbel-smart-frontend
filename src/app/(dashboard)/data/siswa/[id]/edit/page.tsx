@@ -6,6 +6,8 @@ import api from "@/lib/axios"
 import Form from "../../form"
 import { Siswa } from "@/lib/types"
 
+type ApiError = { response?: { status?: number; data?: { errors?: Record<string, string[]> } } }
+
 export default function EditSiswa({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter()
 
@@ -13,7 +15,7 @@ export default function EditSiswa({ params }: { params: Promise<{ id: string }> 
 
     const [data, setData] = useState<Siswa | undefined>()
     const [isLoading, setIsLoading] = useState<boolean>(true)
-    const [errors, setErrors] = useState<any>({})
+    const [errors, setErrors] = useState<Record<string, string[]>>({})
 
     useEffect(() => {
         if (!id) return
@@ -30,16 +32,15 @@ export default function EditSiswa({ params }: { params: Promise<{ id: string }> 
             .finally(() => setIsLoading(false))
     }, [id])
 
-    const submitHandler = (payload: any) => {
+    const submitHandler = (payload: Record<string, unknown>) => {
         api
             .patch(`/siswa/${id}`, payload)
             .then(() => {
                 router.push("/data/siswa")
             })
-            .catch((error) => {
-                if (error.response?.status === 422) {
-                    setErrors(error.response.data.errors)
-                }
+            .catch((error: unknown) => {
+                const response = (error as ApiError).response
+                if (response?.status === 422) setErrors(response.data?.errors ?? {})
             })
     }
 

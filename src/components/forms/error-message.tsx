@@ -1,16 +1,15 @@
 type Props = {
-    error: string[]
+    error?: string[]
 }
 
 export default function ErrorMessage({ error }: Props) {
+    if (!error?.length) return null
+
     return (
-        <>
-            {error && error.map((row) => (
-                <>
-                    <span className="text-xs leading-none text-red-500">{row}</span>
-                    <br />
-                </>
+        <ul className="space-y-0.5">
+            {error.map((row, index) => (
+                <li key={index} className="text-xs leading-relaxed text-red-500">{row}</li>
             ))}
-        </>
+        </ul>
     )
 }

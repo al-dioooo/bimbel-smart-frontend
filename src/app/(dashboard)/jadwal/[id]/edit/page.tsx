@@ -16,6 +16,8 @@ type Jadwal = {
     materi?: string | null
 }
 
+type ApiError = { response?: { status?: number; data?: { errors?: Record<string, string[]> } } }
+
 export default function EditJadwal({ params }: { params: Promise<{ id: string }> }) {
     const router = useRouter()
 
@@ -23,7 +25,7 @@ export default function EditJadwal({ params }: { params: Promise<{ id: string }>
 
     const [data, setData] = useState<Jadwal | undefined>()
     const [isLoading, setIsLoading] = useState<boolean>(true)
-    const [errors, setErrors] = useState<any>({})
+    const [errors, setErrors] = useState<Record<string, string[]>>({})
 
     useEffect(() => {
         if (!id) return
@@ -39,16 +41,15 @@ export default function EditJadwal({ params }: { params: Promise<{ id: string }>
             .finally(() => setIsLoading(false))
     }, [id])
 
-    const submitHandler = (payload: any) => {
+    const submitHandler = (payload: Record<string, unknown>) => {
         api
             .patch(`/jadwal/${id}`, payload)
             .then(() => {
                 router.push("/jadwal")
             })
-            .catch((error) => {
-                if (error.response?.status === 422) {
-                    setErrors(error.response.data.errors)
-                }
+            .catch((error: unknown) => {
+                const response = (error as ApiError).response
+                if (response?.status === 422) setErrors(response.data?.errors ?? {})
             })
     }
 

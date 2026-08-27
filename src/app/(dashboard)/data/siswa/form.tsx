@@ -30,8 +30,8 @@ type Siswa = {
 type Props = {
     data?: Siswa
     isLoading?: boolean
-    onSubmit: (value: any) => void
-    errors: any
+    onSubmit: (value: Record<string, unknown>) => void
+    errors: Record<string, string[]>
 }
 
 export default function Form({ data, isLoading = false, onSubmit, errors }: Props) {
@@ -47,8 +47,6 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
     const [kontakWali, setKontakWali] = useState("")
     const [pekerjaanWali, setPekerjaanWali] = useState("")
     const [alamatWali, setAlamatWali] = useState("")
-
-    const [tanggalBergabung, setTanggalBergabung] = useState("")
 
     const { data: kelasDataList, isLoading: isLoadingMentorDataList } = useKelas({
         paginate: false
@@ -75,7 +73,6 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
         setPekerjaanWali(data.pekerjaan_wali ?? "")
         setAlamatWali(data.alamat_wali ?? "")
 
-        setTanggalBergabung(data.tanggal_bergabung ?? "")
     }, [data, isLoading])
 
     const submitHandler = (e: FormEvent) => {
@@ -95,7 +92,6 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
             pekerjaan_wali: pekerjaanWali || null,
             alamat_wali: alamatWali || null,
 
-            // tanggal_bergabung: tanggalBergabung || null,
         })
     }
 
@@ -110,7 +106,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="nama"
                             placeholder="Masukkan nama siswa"
                             value={nama}
-                            onChange={(e: any) => setNama(e.target.value)}
+                            onChange={(e) => setNama(e.target.value)}
                             error={errors.nama}
                         />
                         <Description value="" error={errors.nama} />
@@ -122,7 +118,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="kontak"
                             placeholder="Nomor HP / WhatsApp siswa"
                             value={kontak}
-                            onChange={(e: any) => setKontak(e.target.value)}
+                            onChange={(e) => setKontak(e.target.value)}
                             error={errors.kontak}
                         />
                         <Description value="" error={errors.kontak} />
@@ -134,7 +130,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="alamat"
                             placeholder="Alamat rumah siswa"
                             value={alamat}
-                            onChange={(e: any) => setAlamat(e.target.value)}
+                            onChange={(e) => setAlamat(e.target.value)}
                             error={errors.alamat}
                         />
                         <Description value="" error={errors.alamat} />
@@ -146,7 +142,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="tempat_tanggal_lahir"
                             placeholder="Contoh: Bogor, 01 Januari 2010"
                             value={tempatTanggalLahir}
-                            onChange={(e: any) => setTempatTanggalLahir(e.target.value)}
+                            onChange={(e) => setTempatTanggalLahir(e.target.value)}
                             error={errors.tempat_tanggal_lahir}
                         />
                         <Description value="" error={errors.tempat_tanggal_lahir} />
@@ -158,7 +154,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="asal_sekolah"
                             placeholder="Contoh: SMPN 1 Bogor"
                             value={asalSekolah}
-                            onChange={(e: any) => setAsalSekolah(e.target.value)}
+                            onChange={(e) => setAsalSekolah(e.target.value)}
                             error={errors.asal_sekolah}
                         />
                         <Description value="" error={errors.asal_sekolah} />
@@ -166,8 +162,8 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
 
                     <div>
                         <Label htmlFor="kelas_id" value="Kelas" />
-                        {/* @ts-expect-error */}
-                        <SelectDescription placeholder="Pilih Kelas" title={(value) => value?.nama} isLoading={isLoadingMentorDataList} description={(value) => value.tingkat} onChange={(value: any) => setKelasId(value)} keyValue={(value) => value.id} value={kelasId} error={errors.kelas_id} selection={kelasDataList} />
+                        {/* @ts-expect-error SelectDescription is intentionally untyped over its selection rows */}
+                        <SelectDescription placeholder="Pilih Kelas" title={(value) => value?.nama} isLoading={isLoadingMentorDataList} description={(value) => value.tingkat} onChange={(value: unknown) => setKelasId(value)} keyValue={(value) => value.id} value={kelasId} error={errors.kelas_id} selection={kelasDataList} />
                         <Description value="" error={errors.kelas_id} />
                     </div>
                 </div>
@@ -184,7 +180,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="nama_wali"
                             placeholder="Nama orang tua / wali"
                             value={namaWali}
-                            onChange={(e: any) => setNamaWali(e.target.value)}
+                            onChange={(e) => setNamaWali(e.target.value)}
                             error={errors.nama_wali}
                         />
                         <Description value="" error={errors.nama_wali} />
@@ -196,7 +192,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="kontak_wali"
                             placeholder="Nomor HP / WhatsApp wali"
                             value={kontakWali}
-                            onChange={(e: any) => setKontakWali(e.target.value)}
+                            onChange={(e) => setKontakWali(e.target.value)}
                             error={errors.kontak_wali}
                         />
                         <Description value="" error={errors.kontak_wali} />
@@ -208,7 +204,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="pekerjaan_wali"
                             placeholder="Pekerjaan orang tua / wali"
                             value={pekerjaanWali}
-                            onChange={(e: any) => setPekerjaanWali(e.target.value)}
+                            onChange={(e) => setPekerjaanWali(e.target.value)}
                             error={errors.pekerjaan_wali}
                         />
                         <Description value="" error={errors.pekerjaan_wali} />
@@ -220,7 +216,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="alamat_wali"
                             placeholder="Alamat tempat tinggal wali"
                             value={alamatWali}
-                            onChange={(e: any) => setAlamatWali(e.target.value)}
+                            onChange={(e) => setAlamatWali(e.target.value)}
                             error={errors.alamat_wali}
                         />
                         <Description value="" error={errors.alamat_wali} />
@@ -239,7 +235,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="tanggal_bergabung"
                             type="date"
                             value={tanggalBergabung}
-                            onChange={(e: any) => setTanggalBergabung(e.target.value)}
+                            onChange={(e) => setTanggalBergabung(e.target.value)}
                             error={errors.tanggal_bergabung}
                         />
                         <Description value="" error={errors.tanggal_bergabung} />

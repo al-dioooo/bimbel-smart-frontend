@@ -5,20 +5,21 @@ import { useRouter } from "next/navigation"
 import api from "@/lib/axios"
 import Form from "../form"
 
+type ApiError = { response?: { status?: number; data?: { errors?: Record<string, string[]> } } }
+
 export default function CreateSiswa() {
     const router = useRouter()
-    const [errors, setErrors] = useState<any>({})
+    const [errors, setErrors] = useState<Record<string, string[]>>({})
 
-    const submitHandler = (data: any) => {
+    const submitHandler = (data: Record<string, unknown>) => {
         api
             .post("/siswa", data) // sesuaikan dengan endpoint API kamu
             .then(() => {
                 router.push("/data/siswa")
             })
-            .catch((error) => {
-                if (error.response?.status === 422) {
-                    setErrors(error.response.data.errors)
-                }
+            .catch((error: unknown) => {
+                const response = (error as ApiError).response
+                if (response?.status === 422) setErrors(response.data?.errors ?? {})
             })
     }
 

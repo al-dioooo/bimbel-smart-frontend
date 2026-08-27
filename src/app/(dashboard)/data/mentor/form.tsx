@@ -16,8 +16,8 @@ import { Mentor } from "@/lib/types"
 type Props = {
     data?: Mentor
     isLoading?: boolean
-    onSubmit: (value: any) => void
-    errors: any
+    onSubmit: (value: Record<string, unknown>) => void
+    errors: Record<string, string[]>
 }
 
 export default function Form({ data, isLoading = false, onSubmit, errors }: Props) {
@@ -81,7 +81,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="username"
                             placeholder="Masukkan username"
                             value={username}
-                            onChange={(e: any) => setUsername(e.target.value)}
+                            onChange={(e) => setUsername(e.target.value)}
                             error={errors.username}
                         />
                         <Description value="" error={errors.username} />
@@ -94,7 +94,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             type="email"
                             placeholder="Masukkan email"
                             value={email}
-                            onChange={(e: any) => setEmail(e.target.value)}
+                            onChange={(e) => setEmail(e.target.value)}
                             error={errors.email}
                         />
                         <Description value="" error={errors.email} />
@@ -107,11 +107,24 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             type="password"
                             placeholder="Masukkan password"
                             value={password}
-                            onChange={(e: any) => setPassword(e.target.value)}
+                            onChange={(e) => setPassword(e.target.value)}
                             error={errors.password}
                         />
                         <Description value={data ? 'Kosongkan jika tidak ingin mengubah password.' : ''} error={errors.password}
                         />
+                    </div>
+
+                    <div>
+                        <Label htmlFor="password_confirmation" value="Konfirmasi Password" />
+                        <Input
+                            id="password_confirmation"
+                            type="password"
+                            placeholder="Ulangi password"
+                            value={passwordConfirmation}
+                            onChange={(e) => setPasswordConfirmation(e.target.value)}
+                            error={!!errors.password_confirmation}
+                        />
+                        <Description value="" error={errors.password_confirmation} />
                     </div>
                 </div>
             </FormSection>
@@ -130,7 +143,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="name"
                             placeholder="Masukkan nama mentor"
                             value={name}
-                            onChange={(e: any) => setName(e.target.value)}
+                            onChange={(e) => setName(e.target.value)}
                             error={errors.name}
                         />
                         <Description value="" error={errors.name} />
@@ -142,7 +155,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="tempat_tanggal_lahir"
                             placeholder="Contoh: Bogor, 01 Januari 2000"
                             value={tempatTanggalLahir}
-                            onChange={(e: any) => setTempatTanggalLahir(e.target.value)}
+                            onChange={(e) => setTempatTanggalLahir(e.target.value)}
                             error={errors.tempat_tanggal_lahir}
                         />
                         <Description value="" error={errors.tempat_tanggal_lahir} />
@@ -154,7 +167,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="kontak"
                             placeholder="Nomor HP / WhatsApp"
                             value={kontak}
-                            onChange={(e: any) => setKontak(e.target.value)}
+                            onChange={(e) => setKontak(e.target.value)}
                             error={errors.kontak}
                         />
                         <Description value="" error={errors.kontak} />
@@ -166,7 +179,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="nik"
                             placeholder="Nomor Induk Kependudukan"
                             value={nik}
-                            onChange={(e: any) => setNik(e.target.value)}
+                            onChange={(e) => setNik(e.target.value)}
                             error={errors.nik}
                         />
                         <Description value="" error={errors.nik} />
@@ -178,7 +191,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="npwp"
                             placeholder="Nomor NPWP"
                             value={npwp}
-                            onChange={(e: any) => setNpwp(e.target.value)}
+                            onChange={(e) => setNpwp(e.target.value)}
                             error={errors.npwp}
                         />
                         <Description value="" error={errors.npwp} />
@@ -190,7 +203,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                             id="alamat"
                             placeholder="Alamat"
                             value={alamat}
-                            onChange={(e: any) => setAlamat(e.target.value)}
+                            onChange={(e) => setAlamat(e.target.value)}
                             error={errors.alamat}
                         />
                         <Description value="" error={errors.alamat} />
