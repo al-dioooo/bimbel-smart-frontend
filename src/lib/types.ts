@@ -60,9 +60,17 @@ export interface Siswa {
     updated_at: string
 }
 
-export interface Pengajuan {
+export interface PengajuanJadwal {
     id: number
-    nama: string
+    jadwal_id: number
+    jadwal: Jadwal
+    tanggal_sebelum: string
+    tanggal_sesudah: string
+    waktu_mulai_sebelum: string
+    waktu_mulai_sesudah: string
+    waktu_selesai_sebelum: string
+    waktu_selesai_sesudah: string
+    alasan: string
     status: string
     created_at: string
     updated_at: string
@@ -86,6 +94,90 @@ export interface Notification {
     message: string
     link: string
     is_read: boolean
+    created_at: string
+    updated_at: string
+}
+
+/** Derived on read by ReportAbsensiController — there is no report_absensi table. */
+export interface ReportAbsensiRow {
+    kelas_id: number
+    kelas: string
+    tingkat: string | null
+    mentor: string | null
+    tahun: number
+    bulan: number
+    hadir: number
+    sakit: number
+    izin: number
+    alpa: number
+    total: number
+}
+
+export interface ReportAbsensiSiswaRow {
+    siswa_id: number
+    siswa: string
+    hadir: number
+    sakit: number
+    izin: number
+    alpa: number
+    total: number
+}
+
+export interface ReportAbsensiDetail {
+    kelas: {
+        id: number
+        nama: string
+        tingkat: string | null
+        mentor: string | null
+    } | null
+    rekap: PaginatedResponse<ReportAbsensiSiswaRow>
+}
+
+/** Derived on read by ReportGajiController. */
+export interface ReportGajiRow {
+    mentor_id: number
+    mentor: string
+    tahun: number
+    bulan: number
+    total_kehadiran_murid: number
+    nominal: number
+}
+
+export interface ReportGajiDetailRow {
+    kelas_id: number
+    kelas: string
+    mentor: string
+    tahun: number
+    bulan: number
+    tarif: number
+    jumlah_kehadiran: number
+    nominal: number
+}
+
+export interface DashboardStats {
+    periode: { from: string; to: string }
+    total_siswa: number
+    total_kehadiran: number
+    penghasilan: number
+    persentase_kehadiran: number
+    kehadiran: {
+        hadir: number
+        sakit: number
+        izin: number
+        alpa: number
+        total: number
+    }
+}
+
+export interface Absensi {
+    id: number
+    jadwal_id: number
+    siswa_id: number
+    jadwal?: Jadwal
+    siswa?: Siswa
+    tanggal: string
+    status: string
+    is_open: boolean
     created_at: string
     updated_at: string
 }
