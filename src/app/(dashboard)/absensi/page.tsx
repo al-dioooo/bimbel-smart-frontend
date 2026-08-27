@@ -1,145 +1,143 @@
 'use client'
 
-/* eslint-disable @typescript-eslint/no-explicit-any */
-import { useState, useEffect, useRef } from "react"
-import { usePathname, useRouter, useSearchParams } from "next/navigation"
+import { useMemo, useState } from "react"
+import moment from "moment"
+import { toast } from "sonner"
 
-// Icons
-import { Search } from "@/components/icons/outline"
-
-// Components
+import PageHeader from "@/components/ui/page-header"
+import PrimaryButton from "@/components/buttons/primary"
+import OutlineButton from "@/components/buttons/outline"
 import SelectDescription from "@/components/forms/select-description"
-import AbsensiTable from "@/components/absensi-table"
+import SearchInput from "@/components/data/search-input"
+import AbsensiTable, { type AttendanceDraft } from "@/components/absensi-table"
+import { useListParams } from "@/components/data/use-list-params"
+import { Check, ArrowNarrowRight } from "@/components/icons/outline"
 
-// --- LOCAL ICON COMPONENT: SAVE ---
-const SaveIcon = ({ className }: { className?: string }) => (
-    <svg 
-        xmlns="http://www.w3.org/2000/svg" 
-        className={className} 
-        width="24" 
-        height="24" 
-        viewBox="0 0 24 24" 
-        strokeWidth="1.5" 
-        stroke="currentColor" 
-        fill="none" 
-        strokeLinecap="round" 
-        strokeLinejoin="round"
-    >
-        <path stroke="none" d="M0 0h24v24H0z" fill="none"/>
-        <path d="M6 4h10l4 4v10a2 2 0 0 1 -2 2h-12a2 2 0 0 1 -2 -2v-12a2 2 0 0 1 2 -2" />
-        <path d="M12 14m-2 0a2 2 0 1 0 4 0a2 2 0 1 0 -4 0" />
-        <path d="M14 4l0 4l-6 0l0 -4" />
-    </svg>
-)
-
-// --- Mock Data untuk Pilihan Kelas ---
-const CLASS_OPTIONS = [
-    { id: 1, name: "Kelas 10 IPA 1", description: "Wali Kelas: Budi Santoso" },
-    { id: 2, name: "Kelas 10 IPA 2", description: "Wali Kelas: Siti Aminah" },
-    { id: 3, name: "Kelas 11 IPS 1", description: "Wali Kelas: Joko Anwar" },
-    { id: 4, name: "Kelas 12 Bahasa", description: "Wali Kelas: Rina Nose" },
-]
+import { useKelas } from "@/hooks/repositories/use-kelas"
+import api from "@/lib/axios"
+import type { Kelas } from "@/lib/types"
 
 export default function ListAbsensiPage() {
-    const router = useRouter()
-    const pathname = usePathname()
-    const searchParams = useSearchParams()
+    const { search, searchTemp, setSearchTemp } = useListParams()
 
-    // --- 1. Search Logic ---
-    const [searchTemp, setSearchTemp] = useState(searchParams.get('search') ?? "")
-    const searchInput = useRef<HTMLInputElement>(null)
-    const search = searchParams.get('search')
+    const { data: kelasList, isLoading: isLoadingKelas } = useKelas({ paginate: false })
 
-    // Debounce effect
-    useEffect(() => {
-        const timeOut = setTimeout(() => {
-            const current = new URLSearchParams(searchParams.toString())
+    const [selectedKelas, setSelectedKelas] = useState<number | null>(null)
+    const [draft, setDraft] = useState<AttendanceDraft>({})
+    const [isSaving, setIsSaving] = useState(false)
 
-            if (searchTemp !== search) {
-                if (searchTemp !== "") {
-                    current.set('search', searchTemp)
-                } else {
-                    current.delete('search')
-                }
-                router.replace(`${pathname}?${current.toString()}`)
-            }
-        }, 500)
+    // Default to the current month, matching the dashboard's window.
+    const range = useMemo(
+        () => ({
+            from: moment().startOf('month').format('YYYY-MM-DD'),
+            to: moment().endOf('month').format('YYYY-MM-DD'),
+        }),
+        []
+    )
 
-        return () => clearTimeout(timeOut)
-    }, [searchTemp, search, pathname, router, searchParams])
+    const pendingCount = Object.values(draft).reduce(
+        (sum, column) => sum + Object.values(column).filter(Boolean).length,
+        0
+    )
 
+    /** Was `console.log("Simpan data...")`. */
+    const handleSave = async () => {
+        if (!selectedKelas) {
+            toast.error('Pilih kelas terlebih dahulu')
+            return
+        }
 
-    // --- 2. Filter Kelas State ---
-    const [selectedClass, setSelectedClass] = useState<any>(null)
+        // One request per jadwal column that has at least one filled cell.
+        const payloads = Object.entries(draft)
+            .map(([jadwalId, column]) => ({
+                jadwal_id: Number(jadwalId),
+                absensi: Object.entries(column)
+                    .filter(([, status]) => !!status)
+                    .map(([siswaId, status]) => ({ siswa_id: Number(siswaId), status: status as string })),
+            }))
+            .filter((payload) => payload.absensi.length > 0)
 
-    const handleClassChange = (val: any) => {
-        setSelectedClass(val)
+        if (payloads.length === 0) {
+            toast.error('Belum ada absensi yang diisi')
+            return
+        }
+
+        setIsSaving(true)
+        try {
+            await Promise.all(payloads.map((payload) => api.post('/absensi', payload)))
+            toast.success(`Absensi tersimpan (${pendingCount} entri)`)
+        } catch (error: unknown) {
+            const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message
+            toast.error(message || 'Gagal menyimpan absensi')
+        } finally {
+            setIsSaving(false)
+        }
     }
 
-    // --- 3. Handler Simpan ---
-    const handleSave = () => {
-        console.log("Simpan data...")
-    }
+    const kelasOptions = (kelasList as unknown as Kelas[]) ?? []
 
     return (
         <div className="w-full space-y-6 pb-20">
-            {/* Container Card */}
+            <PageHeader
+                title="Absensi"
+                description={`Periode ${moment(range.from).format('D MMM')} – ${moment(range.to).format('D MMM YYYY')}`}
+                action={
+                    <OutlineButton
+                        as="link"
+                        href="/report/absensi"
+                        buttonType="secondary"
+                        className="text-xs"
+                        icon={<ArrowNarrowRight className="w-4 h-4" />}
+                        iconPosition="right"
+                    >
+                        Lihat Rekap
+                    </OutlineButton>
+                }
+            />
+
             <div className="space-y-4">
-                
-                {/* --- TOOLBAR --- */}
-                <div className="flex flex-col md:flex-row justify-between items-center gap-4">
-                    
-                    {/* BAGIAN KIRI: Search & Filter */}
-                    <div className="flex flex-col sm:flex-row items-center gap-2 w-full md:w-auto">
-                        
-                        {/* 1. Input Search */}
-                        <div className="relative w-full sm:w-64">
-                            <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                                <Search className="w-4 h-4 text-neutral-400" />
-                            </div>
-                            <input 
-                                ref={searchInput} 
-                                onChange={(e) => setSearchTemp(e.target.value)} 
-                                value={searchTemp} 
-                                type="text" 
-                                placeholder="Cari Siswa" 
-                                autoComplete="off" 
-                                className="w-full py-2 pl-9 pr-4 text-sm transition border border-neutral-200 rounded-full focus:outline-none focus:border-sky-400 focus:ring-2 focus:ring-sky-200 placeholder-neutral-400" 
-                            />
-                        </div>
+                <div className="flex flex-col md:flex-row justify-between md:items-center gap-4">
+                    <div className="flex flex-col sm:flex-row sm:items-center gap-2 w-full md:w-auto">
+                        <SearchInput value={searchTemp} onChange={setSearchTemp} placeholder="Cari siswa" />
 
-                        {/* 2. Filter Kelas */}
-                        <div className="w-full sm:w-48">
+                        <div className="w-full sm:w-52">
                             <SelectDescription
-                                title={(row) => row.name}
-                                description={(row) => row.description}
-                                keyValue={(row) => row.id}
-                                selection={CLASS_OPTIONS}
-                                isLoading={false}
-                                placeholder="Kelas"
-                                value={selectedClass}
-                                onChange={handleClassChange}
+                                title={(row: Kelas) => row?.nama}
+                                description={(row: Kelas) => row?.tingkat}
+                                keyValue={(row: Kelas) => row?.id}
+                                selection={kelasOptions}
+                                isLoading={isLoadingKelas}
+                                placeholder="Pilih kelas"
+                                value={selectedKelas ?? ''}
+                                onChange={(value) => {
+                                    // The selected class was previously tracked but never used.
+                                    setSelectedKelas(value ? Number(value) : null)
+                                    setDraft({})
+                                }}
                             />
                         </div>
                     </div>
 
-                    {/* BAGIAN KANAN: Tombol Simpan */}
-                    <div className="w-full md:w-auto flex justify-end">
-                        <button 
-                            onClick={handleSave}
-                            className="flex items-center space-x-2 px-5 py-2 border border-sky-500 text-sky-500 rounded-full hover:bg-sky-50 transition-colors text-sm font-semibold"
-                        >
-                            {/* Menggunakan komponen SaveIcon lokal */}
-                            <SaveIcon className="w-4 h-4" />
-                            <span>Simpan</span>
-                        </button>
-                    </div>
+                    <PrimaryButton
+                        type="button"
+                        onClick={handleSave}
+                        isLoading={isSaving}
+                        disabled={isSaving || !selectedKelas}
+                        className="text-sm"
+                        icon={<Check className="w-4 h-4" strokeWidth={2} />}
+                    >
+                        Simpan
+                    </PrimaryButton>
                 </div>
 
-                {/* --- TABEL --- */}
-                <div className="mt-2">
-                    <AbsensiTable searchQuery={search || ""} />
-                </div>
+                <AbsensiTable
+                    kelasId={selectedKelas}
+                    searchQuery={search || ''}
+                    from={range.from}
+                    to={range.to}
+                    draft={draft}
+                    onDraftChange={setDraft}
+                />
             </div>
         </div>
     )
