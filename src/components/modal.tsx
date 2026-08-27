@@ -11,8 +11,21 @@ import {
     DialogTitle,
     type DialogFlipDirection,
 } from '@/components/base/dialog'
-import { Search, X } from '@/components/icons/outline'
+import { X } from '@/components/icons/outline'
 import { useEffect, useState } from 'react'
+import { cn } from '@/lib/utils'
+
+type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl'
+
+/** Explicit map — `sm:max-w-${size}` is invisible to Tailwind's scanner. */
+const sizeClasses: Record<ModalSize, string> = {
+    sm: 'sm:max-w-sm',
+    md: 'sm:max-w-md',
+    lg: 'sm:max-w-lg',
+    xl: 'sm:max-w-xl',
+    '2xl': 'sm:max-w-2xl',
+    '3xl': 'sm:max-w-3xl',
+}
 
 type Props = {
     isOpen: boolean
@@ -26,7 +39,7 @@ type Props = {
 
     footer?: React.ReactNode
 
-    size?: 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl'
+    size?: ModalSize
 }
 
 export default function Modal({ isOpen = false, onClose, from, children, title, subtitle, footer, size = 'lg' }: Props) {
@@ -38,28 +51,34 @@ export default function Modal({ isOpen = false, onClose, from, children, title, 
 
     return (
         <Dialog open={isOpenState} onClose={onClose}>
-            <DialogBackdrop className="fixed inset-0 z-50 bg-black/80" />
-            <DialogPanel from={from} className={`sm:max-w-${size} min-w-${size} fixed left-[50%] top-[50%] translate-x-[-50%] translate-y-[-50%] z-50 border bg-background p-4 rounded-3xl`}>
+            <DialogBackdrop className="fixed inset-0 z-50 bg-black/60" />
+            <DialogPanel
+                from={from}
+                className={cn(
+                    'fixed left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 z-50',
+                    'w-[calc(100vw-2rem)]',
+                    sizeClasses[size],
+                    'border border-neutral-200 bg-white p-6 rounded-2xl shadow-xl'
+                )}
+            >
                 <DialogHeader>
-                    <DialogTitle className="text-xl font-semibold">{title}</DialogTitle>
-                    <DialogDescription className="text-sm">
-                        {subtitle}
-                    </DialogDescription>
+                    <DialogTitle className="text-xl font-semibold pr-10">{title}</DialogTitle>
+                    {subtitle && (
+                        <DialogDescription className="mt-1 text-sm text-neutral-500">
+                            {subtitle}
+                        </DialogDescription>
+                    )}
                 </DialogHeader>
 
-                <div>
-                    {children}
-                </div>
+                <div>{children}</div>
 
-                <DialogFooter>
-                    {footer}
-                </DialogFooter>
+                {footer && <DialogFooter>{footer}</DialogFooter>}
 
                 <DialogClose className="absolute top-4 right-4">
-                    <span className="p-2 flex bg-neutral-100 rounded-lg cursor-pointer">
+                    <span className="p-2 flex bg-neutral-100 hover:bg-neutral-200 transition-colors rounded-lg cursor-pointer">
                         <X className="w-4 h-4" />
                     </span>
-                    <span className="sr-only">Close</span>
+                    <span className="sr-only">Tutup</span>
                 </DialogClose>
             </DialogPanel>
         </Dialog>

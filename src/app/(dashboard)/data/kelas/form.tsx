@@ -1,4 +1,4 @@
-import { FormEvent, use, useEffect, useRef, useState } from "react"
+import { FormEvent, useEffect, useRef, useState } from "react"
 
 import PrimaryButton from "@/components/buttons/primary"
 import Description from "@/components/forms/description"
@@ -14,20 +14,20 @@ import { CircleDashedPlus, Search, Trash } from "@/components/icons/outline"
 import Modal from "@/components/modal"
 import { useSiswa } from "@/hooks/repositories/use-siswa"
 import { Checkbox, CheckboxIndicator } from "@/components/forms/checkbox"
-import NoRedirectPagination from "@/components/no-redirect-pagination"
+import Pagination from "@/components/pagination"
 import { useMentor } from "@/hooks/repositories/use-mentor"
 import SelectDescription from "@/components/forms/select-description"
 
 type Props = {
     data?: Kelas
     isLoading?: boolean
-    onSubmit: (value: any) => void
-    errors: any
+    onSubmit: (value: Record<string, unknown>) => void
+    errors: Record<string, string[]>
 }
 
 type SiswaSelectorProps = {
     data?: Siswa[]
-    onSubmit: (value: any) => void
+    onSubmit: (value: Siswa[]) => void
 }
 
 const SiswaSelector = ({ data, onSubmit }: SiswaSelectorProps) => {
@@ -41,7 +41,7 @@ const SiswaSelector = ({ data, onSubmit }: SiswaSelectorProps) => {
         setSearchTemp("")
     }
 
-    const searchInput = useRef<any>(undefined)
+    const searchInput = useRef<HTMLInputElement>(null)
     const [searchTemp, setSearchTemp] = useState<string>("")
     const [search, setSearch] = useState<string | null>("")
     const [page, setPage] = useState<number>(1)
@@ -59,7 +59,7 @@ const SiswaSelector = ({ data, onSubmit }: SiswaSelectorProps) => {
     }, [searchTemp])
 
     const toggleSelectedSiswa = (siswa: Siswa) => {
-        let updatedSelectedSiswa = selectedSiswa ? [...selectedSiswa] : []
+        const updatedSelectedSiswa = selectedSiswa ? [...selectedSiswa] : []
 
         const index = updatedSelectedSiswa.findIndex((item) => item.id === siswa.id)
         if (index > -1) {
@@ -73,7 +73,7 @@ const SiswaSelector = ({ data, onSubmit }: SiswaSelectorProps) => {
         setSelectedSiswa(updatedSelectedSiswa)
     }
 
-    const { data: siswaDataList, isLoading } = useSiswa({
+    const { data: siswaDataList } = useSiswa({
         page,
         search,
         no_kelas: true
@@ -83,9 +83,9 @@ const SiswaSelector = ({ data, onSubmit }: SiswaSelectorProps) => {
         setPage(value)
     }
 
-    const handleSubmit = (value: any) => {
+    const handleSubmit = (value: Siswa[] | null) => {
         closeModal()
-        onSubmit(value)
+        onSubmit(value ?? [])
     }
 
     return (
@@ -142,7 +142,7 @@ const SiswaSelector = ({ data, onSubmit }: SiswaSelectorProps) => {
                             </table>
                         </AutoHeight>
                     </div>
-                    <NoRedirectPagination onUpdate={updatePage} current={page} links={siswaDataList?.links} from={siswaDataList?.from} to={siswaDataList?.to} total={siswaDataList?.total} />
+                    <Pagination onNavigate={updatePage} current={page} links={siswaDataList?.links} from={siswaDataList?.from} to={siswaDataList?.to} total={siswaDataList?.total} />
 
                     <PrimaryButton type="button" onClick={() => handleSubmit(selectedSiswa)} centerText className="text-sm w-full">Simpan</PrimaryButton>
                 </div>
@@ -169,7 +169,7 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
             setMentor(data.mentor_id)
             setSelectedSiswa(data.siswa ?? null)
         }
-    }, [isLoading])
+    }, [data, isLoading])
 
     const updateSelectedSiswa = (value: Siswa[]) => {
         setSelectedSiswa(value)
@@ -202,18 +202,18 @@ export default function Form({ data, isLoading = false, onSubmit, errors }: Prop
                 <div className="grid gap-4 sm:grid-cols-2">
                     <div>
                         <Label htmlFor="nama" value="Nama" />
-                        <Input placeholder="Masukkan data nama" onChange={(e: any) => setNama(e.target.value)} value={nama} id="nama" error={errors.nama} />
+                        <Input placeholder="Masukkan data nama" onChange={(e) => setNama(e.target.value)} value={nama} id="nama" error={errors.nama} />
                         <Description value="" error={errors.nama} />
                     </div>
                     <div>
                         <Label htmlFor="tingkat" value="Tingkat" />
-                        <Input placeholder="Masukan data tingkat kelas" onChange={(e: any) => setTingkat(e.target.value)} value={tingkat} id="tingkat" error={errors.tingkat} />
+                        <Input placeholder="Masukan data tingkat kelas" onChange={(e) => setTingkat(e.target.value)} value={tingkat} id="tingkat" error={errors.tingkat} />
                         <Description value="" error={errors.tingkat} />
                     </div>
                     <div>
                         <Label htmlFor="mentor_id" value="Mentor" />
-                        {/* @ts-expect-error */}
-                        <SelectDescription placeholder="Pilih Mentor" title={(value) => value?.user?.name} isLoading={isLoadingMentorDataList} description={(value) => value.kontak} onChange={(value: any) => setMentor(value)} keyValue={(value) => value.id} value={mentor} error={errors.mentor_id} selection={mentorDataList} />
+                        {/* @ts-expect-error SelectDescription is intentionally untyped over its selection rows */}
+                        <SelectDescription placeholder="Pilih Mentor" title={(value) => value?.user?.name} isLoading={isLoadingMentorDataList} description={(value) => value.kontak} onChange={(value: unknown) => setMentor(value)} keyValue={(value) => value.id} value={mentor} error={errors.mentor_id} selection={mentorDataList} />
                         <Description value="" error={errors.mentor_id} />
                     </div>
                 </div>

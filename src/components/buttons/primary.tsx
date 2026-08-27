@@ -14,22 +14,42 @@ type PrimaryButtonProps<T extends React.ElementType> = {
     centerText?: boolean
 } & React.ComponentPropsWithoutRef<T>
 
-export default function PrimaryButton<T extends React.ElementType = "button">({ as, children, className, isLoading, iconPosition, icon, centerText, ...rest }: PrimaryButtonProps<T>) {
+export default function PrimaryButton<T extends React.ElementType = "button">({
+    as,
+    children,
+    className,
+    isLoading,
+    iconPosition,
+    icon,
+    centerText,
+    ...rest
+}: PrimaryButtonProps<T>) {
     const Button = as || "button"
 
-    const defaultClassName = `${isLoading ? (iconPosition === 'right' ? 'pl-6 pr-4' : 'pl-4 pr-6') : 'px-6'} ${iconPosition === 'right' ? 'flex-row-reverse' : ''} ${centerText ? 'w-full' : ''} justify-between inline-flex items-center gap-x-2 cursor-pointer bg-radial-[at_0%_0%] from-sky-500 to-sky-300 hover:from-sky-400 hover:to-sky-200 scale-3d hover:active:scale-95 text-white font-medium py-2 rounded-full transition`
+    const base = cn(
+        "justify-between inline-flex items-center gap-x-2 cursor-pointer font-medium py-2 rounded-full transition text-sm",
+        "bg-radial-[at_0%_0%] from-sky-500 to-sky-300 text-white",
+        "hover:from-sky-400 hover:to-sky-200 scale-3d hover:active:scale-95",
+        "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sky-300 focus-visible:ring-offset-2",
+        "disabled:cursor-not-allowed disabled:opacity-60 disabled:hover:scale-100",
+        isLoading ? (iconPosition === "right" ? "pl-6 pr-4" : "pl-4 pr-6") : "px-6",
+        iconPosition === "right" && "flex-row-reverse",
+        centerText && "w-full"
+    )
 
     return (
-        <Button {...rest} className={cn(className, defaultClassName)}>
+        // Caller classes come last so they can override the defaults.
+        <Button {...rest} className={cn(base, className)}>
             {centerText ? (
                 <>
                     <div>{isLoading ? <InnerShadowTopRightSolid className="animate-spin w-4 h-4" /> : (icon && <span>{icon}</span>)}</div>
                     <span>{children}</span>
-                    <div></div>
+                    <div />
                 </>
             ) : (
                 <>
-                    {isLoading ? <span><InnerShadowTopRightSolid className="animate-spin w-4 h-4" /></span> : (icon && <span>{icon}</span>)} <span>{children}</span>
+                    {isLoading ? <span><InnerShadowTopRightSolid className="animate-spin w-4 h-4" /></span> : (icon && <span>{icon}</span>)}
+                    <span>{children}</span>
                 </>
             )}
         </Button>
