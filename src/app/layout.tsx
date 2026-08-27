@@ -4,19 +4,23 @@ import "./globals.css"
 
 import Providers from "@/components/providers"
 
-const poppinsSans = Poppins({
-    weight: ["100", "200", "300", "400", "500", "600", "700", "800", "900"]
+const poppins = Poppins({
+    subsets: ["latin"],
+    display: "swap",
+    weight: ["400", "500", "600"],
+    variable: "--font-poppins",
 })
 
 export const metadata: Metadata = {
     title: process.env.APP_NAME || "Bimbel Smart Portal",
-    description: "Lorem ipsum dolor sit amet consectetur adipisicing elit. Nobis debitis quaerat dolor amet, repudiandae ipsum sunt, facere accusantium veritatis reprehenderit harum dolore? Dolores, laborum temporibus explicabo perspiciatis exercitationem quo incidunt."
+    description:
+        "Portal administrasi Bimbel Smart — kelola jadwal, absensi, data siswa dan mentor, serta rekap gaji dalam satu tempat.",
 }
 
 export default function RootLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
-        <html lang="en">
-            <body className={`${poppinsSans.className} antialiased bg-neutral-50`}>
+        <html lang="id">
+            <body className={`${poppins.className} antialiased bg-neutral-50 text-neutral-900`}>
                 <Providers>
                     {children}
                 </Providers>

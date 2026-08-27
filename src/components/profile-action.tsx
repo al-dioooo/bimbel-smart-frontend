@@ -17,7 +17,7 @@ export default function ProfileAction({
     onLogout,
     children
 }: Props) {
-    const { user } = useUser()
+    const { user, isLoading } = useUser()
 
     return (
         <BasePopover>
@@ -31,8 +31,21 @@ export default function ProfileAction({
                                 <User className="text-white w-6 h-6" />
                             </div>
                             <div className="text-left group-hover:text-neutral-500 transition">
-                                <p className="text-sm font-medium">{user?.name}</p>
-                                <p className="text-sm">{user?.role === 1 ? 'Administrator' : 'Mentor'}</p>
+                                {/* Don't assert a name or role before /me resolves — this
+                                    used to render an empty name labelled "Mentor". */}
+                                {isLoading || !user ? (
+                                    <>
+                                        <div className="h-3.5 w-24 rounded bg-neutral-100 animate-pulse" />
+                                        <div className="mt-1 h-3 w-16 rounded bg-neutral-100 animate-pulse" />
+                                    </>
+                                ) : (
+                                    <>
+                                        <p className="text-sm font-medium">{user.name}</p>
+                                        <p className="text-xs text-neutral-500">
+                                            {user.role === 1 ? 'Administrator' : 'Mentor'}
+                                        </p>
+                                    </>
+                                )}
                             </div>
                         </div>
 
