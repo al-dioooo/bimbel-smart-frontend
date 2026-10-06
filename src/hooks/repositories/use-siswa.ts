@@ -12,6 +12,6 @@ export function useSiswa(params: Record<string, unknown>) {
 }
 
 export function useSiswaById(id: number | null) {
-    const { data, error, mutate } = useSWR<Siswa>(id ? `/siswa/${id}` : null, fetcher)
-    return { data, loading: id ? !error && !data : false, error, mutate }
+    const { data, isLoading, error, mutate } = useSWR<Siswa>(id ? `/siswa/${id}` : null, fetcher)
+    return { data, isLoading, error, mutate }
 }

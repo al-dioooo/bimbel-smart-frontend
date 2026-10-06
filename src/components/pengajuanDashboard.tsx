@@ -4,13 +4,15 @@ import Link from 'next/link'
 
 import { Card, CardHeader } from '@/components/ui/card'
 import { usePengajuanJadwal } from '@/hooks/repositories/use-pengajuan-jadwal'
+import { useAccess } from '@/hooks/use-user'
 import { formatDate } from '@/lib/format'
 import { normalizePengajuanStatus, pengajuanStatus, toneClasses } from '@/lib/status'
 import { cn } from '@/lib/utils'
 
 export default function PengajuanDashboard() {
+    const { scope } = useAccess()
     // Was nine hardcoded rows.
-    const { data, isLoading, error } = usePengajuanJadwal({ limit: 8 })
+    const { data, isLoading, error } = usePengajuanJadwal({ limit: 8, ...scope })
     const rows = data?.data ?? []
 
     return (

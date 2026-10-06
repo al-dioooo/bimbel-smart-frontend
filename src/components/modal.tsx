@@ -12,7 +12,6 @@ import {
     type DialogFlipDirection,
 } from '@/components/base/dialog'
 import { X } from '@/components/icons/outline'
-import { useEffect, useState } from 'react'
 import { cn } from '@/lib/utils'
 
 type ModalSize = 'sm' | 'md' | 'lg' | 'xl' | '2xl' | '3xl'
@@ -43,14 +42,8 @@ type Props = {
 }
 
 export default function Modal({ isOpen = false, onClose, from, children, title, subtitle, footer, size = 'lg' }: Props) {
-    const [isOpenState, setIsOpenState] = useState(isOpen)
-
-    useEffect(() => {
-        setIsOpenState(isOpen)
-    }, [isOpen])
-
     return (
-        <Dialog open={isOpenState} onClose={onClose}>
+        <Dialog open={isOpen} onClose={onClose}>
             <DialogBackdrop className="fixed inset-0 z-50 bg-black/60" />
             <DialogPanel
                 from={from}

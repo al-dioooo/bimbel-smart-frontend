@@ -1,6 +1,6 @@
 "use client"
 
-import { FormEvent, useEffect, useState } from "react"
+import { FormEvent, useState } from "react"
 
 import PrimaryButton from "@/components/buttons/primary"
 import Description from "@/components/forms/description"
@@ -34,46 +34,28 @@ type Props = {
     errors: Record<string, string[]>
 }
 
-export default function Form({ data, isLoading = false, onSubmit, errors }: Props) {
-    const [nama, setNama] = useState("")
-    const [kelasId, setKelasId] = useState<string>("")
+export default function Form({ data, onSubmit, errors }: Props) {
+    // Seeded straight from `data`. The caller keys this component on the record
+    // id, so a freshly loaded record remounts and re-seeds; a background SWR
+    // revalidation of the same record no longer wipes what is being typed.
+    const [nama, setNama] = useState(data?.nama ?? "")
+    const [kelasId, setKelasId] = useState<string>(
+        data?.kelas_id !== null && data?.kelas_id !== undefined ? String(data.kelas_id) : ""
+    )
 
-    const [kontak, setKontak] = useState("")
-    const [alamat, setAlamat] = useState("")
-    const [tempatTanggalLahir, setTempatTanggalLahir] = useState("")
-    const [asalSekolah, setAsalSekolah] = useState("")
+    const [kontak, setKontak] = useState(data?.kontak ?? "")
+    const [alamat, setAlamat] = useState(data?.alamat ?? "")
+    const [tempatTanggalLahir, setTempatTanggalLahir] = useState(data?.tempat_tanggal_lahir ?? "")
+    const [asalSekolah, setAsalSekolah] = useState(data?.asal_sekolah ?? "")
 
-    const [namaWali, setNamaWali] = useState("")
-    const [kontakWali, setKontakWali] = useState("")
-    const [pekerjaanWali, setPekerjaanWali] = useState("")
-    const [alamatWali, setAlamatWali] = useState("")
+    const [namaWali, setNamaWali] = useState(data?.nama_wali ?? "")
+    const [kontakWali, setKontakWali] = useState(data?.kontak_wali ?? "")
+    const [pekerjaanWali, setPekerjaanWali] = useState(data?.pekerjaan_wali ?? "")
+    const [alamatWali, setAlamatWali] = useState(data?.alamat_wali ?? "")
 
     const { data: kelasDataList, isLoading: isLoadingMentorDataList } = useKelas({
         paginate: false
     })
-
-    // Prefill saat edit
-    useEffect(() => {
-        if (!data || isLoading) return
-
-        setNama(data.nama ?? "")
-        setKelasId(
-            data.kelas_id !== null && data.kelas_id !== undefined
-                ? String(data.kelas_id)
-                : ""
-        )
-
-        setKontak(data.kontak ?? "")
-        setAlamat(data.alamat ?? "")
-        setTempatTanggalLahir(data.tempat_tanggal_lahir ?? "")
-        setAsalSekolah(data.asal_sekolah ?? "")
-
-        setNamaWali(data.nama_wali ?? "")
-        setKontakWali(data.kontak_wali ?? "")
-        setPekerjaanWali(data.pekerjaan_wali ?? "")
-        setAlamatWali(data.alamat_wali ?? "")
-
-    }, [data, isLoading])
 
     const submitHandler = (e: FormEvent) => {
         e.preventDefault()

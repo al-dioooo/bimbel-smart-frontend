@@ -7,6 +7,7 @@ import { useRouter } from 'next/navigation'
 import { ChevronLeft, ChevronRight, InfoCircle } from '@/components/icons/outline'
 import OutlineButton from '@/components/buttons/outline'
 import { useJadwal } from '@/hooks/repositories/use-jadwal'
+import { useAccess } from '@/hooks/use-user'
 import { MONTHS, formatTime } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { Jadwal } from '@/lib/types'
@@ -32,8 +33,11 @@ export default function FullCalendar({ selectedDate, onSelectDate }: Props) {
     const gridStart = moment([year, month, 1]).startOf('isoWeek')
     const gridEnd = gridStart.clone().add(41, 'days')
 
+    const { scope } = useAccess()
+
     // Was `mockData` — three invented days of placeholder classes.
     const { data, isLoading, error } = useJadwal({
+        ...scope,
         from: gridStart.format('YYYY-MM-DD'),
         to: gridEnd.format('YYYY-MM-DD'),
         paginate: false,

@@ -33,7 +33,7 @@ export default function EditMentor({ params }: { params: Promise<{ id: string }>
             {/* Title */}
             <h1 className="text-3xl font-semibold">Edit Data Mentor</h1>
             {/* Form */}
-            <Form data={data} isLoading={isLoading} onSubmit={submitHandler} errors={errors} />
+            <Form key={data?.id ?? 'loading'} data={data} isLoading={isLoading} onSubmit={submitHandler} errors={errors} />
         </div>
     )
 }

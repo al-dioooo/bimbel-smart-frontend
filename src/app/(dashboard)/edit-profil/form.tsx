@@ -1,6 +1,6 @@
 "use client"
 
-import { FormEvent, useEffect, useState } from "react"
+import { FormEvent, useState } from "react"
 
 import PrimaryButton from "@/components/buttons/primary"
 import Description from "@/components/forms/description"
@@ -16,23 +16,17 @@ type Props = {
     errors: Record<string, string[]>
 }
 
-export default function Form({ data, isLoading = false, onSubmit, errors }: Props) {
+export default function Form({ data, onSubmit, errors }: Props) {
     // ── User fields ───────────────────────────────────────────
-    const [name, setName] = useState<string>("")
-    const [username, setUsername] = useState<string>("")
-    const [email, setEmail] = useState<string>("")
+    // Seeded straight from `data`. The caller keys this component on the record
+    // id, so a freshly loaded profile remounts and re-seeds; a background SWR
+    // revalidation of the same record no longer wipes what is being typed.
+    const [name, setName] = useState<string>(data?.name ?? "")
+    const [username, setUsername] = useState<string>(data?.username ?? "")
+    const [email, setEmail] = useState<string>(data?.email ?? "")
     const [password, setPassword] = useState<string>("")
     const [passwordConfirmation, setPasswordConfirmation] = useState<string>("")
     const [localError, setLocalError] = useState<string | null>(null)
-
-    // Prefill kalau dipakai untuk edit
-    useEffect(() => {
-        if (!data || isLoading) return
-
-        setName(data.name ?? "")
-        setUsername(data.username ?? "")
-        setEmail(data.email ?? "")
-    }, [data, isLoading])
 
     const submitHandler = (e: FormEvent) => {
         e.preventDefault()

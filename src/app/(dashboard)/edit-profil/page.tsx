@@ -29,7 +29,7 @@ export default function EditProfilPage() {
         <div className="space-y-8">
             {/* Title */}
             <h1 className="text-3xl font-semibold">Edit Profil</h1>
-            <Form data={user ?? undefined} onSubmit={submitHandler} errors={errors} />
+            <Form key={user?.id ?? 'loading'} data={user ?? undefined} onSubmit={submitHandler} errors={errors} />
         </div>
     )
 }

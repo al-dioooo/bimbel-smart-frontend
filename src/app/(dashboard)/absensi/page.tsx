@@ -14,13 +14,16 @@ import { useListParams } from "@/components/data/use-list-params"
 import { Check, ArrowNarrowRight } from "@/components/icons/outline"
 
 import { useKelas } from "@/hooks/repositories/use-kelas"
+import { useAccess } from "@/hooks/use-user"
 import api from "@/lib/axios"
 import type { Kelas } from "@/lib/types"
 
 export default function ListAbsensiPage() {
     const { search, searchTemp, setSearchTemp } = useListParams()
 
-    const { data: kelasList, isLoading: isLoadingKelas } = useKelas({ paginate: false })
+    const { scope } = useAccess()
+    // Mentors only fill attendance for the kelas they teach.
+    const { data: kelasList, isLoading: isLoadingKelas } = useKelas({ paginate: false, ...scope })
 
     const [selectedKelas, setSelectedKelas] = useState<number | null>(null)
     const [draft, setDraft] = useState<AttendanceDraft>({})

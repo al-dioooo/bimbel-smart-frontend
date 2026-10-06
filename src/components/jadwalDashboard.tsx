@@ -6,6 +6,7 @@ import Link from 'next/link'
 
 import { Card, CardHeader } from '@/components/ui/card'
 import { useJadwal } from '@/hooks/repositories/use-jadwal'
+import { useAccess } from '@/hooks/use-user'
 import { formatTimeRange } from '@/lib/format'
 import type { Jadwal } from '@/lib/types'
 
@@ -22,8 +23,10 @@ export default function JadwalDashboard({ date, days = 7, title = 'Jadwal' }: Pr
     const from = moment(anchor).format('YYYY-MM-DD')
     const to = moment(anchor).add(days, 'days').format('YYYY-MM-DD')
 
+    const { scope } = useAccess()
+
     // Was `mockScheduleData`, with the real fetch left commented out.
-    const { data, isLoading, error } = useJadwal({ from, to, paginate: false, order_by: 'tanggal', direction: 'asc' })
+    const { data, isLoading, error } = useJadwal({ from, to, paginate: false, order_by: 'tanggal', direction: 'asc', ...scope })
 
     const grouped = useMemo(() => {
         const rows = (data as unknown as Jadwal[] | undefined) ?? []

@@ -1,6 +1,6 @@
 "use client"
 
-import { FormEvent, useEffect, useState } from "react"
+import { FormEvent, useState } from "react"
 
 import PrimaryButton from "@/components/buttons/primary"
 import Description from "@/components/forms/description"
@@ -12,12 +12,17 @@ import SelectDescription from "@/components/forms/select-description"
 import InputDate from "@/components/forms/input-date"
 import moment from "moment"
 
+/**
+ * What this form seeds from, kept structural so the `Jadwal` in @/lib/types is
+ * assignable: that one has no `mentor_id` (which this form never submits) and
+ * models `tanggal` as a Date, while the API sends a YYYY-MM-DD string.
+ */
 type Jadwal = {
     id: number
-    kelas_id: number | null
-    mentor_id: number | null
+    kelas_id?: number | null
+    mentor_id?: number | null
 
-    tanggal?: string | null      // YYYY-MM-DD
+    tanggal?: string | Date | null
     waktu_mulai?: string | null  // HH:MM
     waktu_selesai?: string | null
     materi?: string | null
@@ -30,29 +35,22 @@ type Props = {
     errors: Record<string, string[]>
 }
 
-export default function Form({ data, isLoading = false, onSubmit, errors }: Props) {
-    const [kelasId, setKelasId] = useState<string | number>("")
+export default function Form({ data, onSubmit, errors }: Props) {
+    // Seeded straight from `data`. The caller keys this component on the record
+    // id, so a freshly loaded record remounts and re-seeds; a background SWR
+    // revalidation of the same record no longer wipes what is being typed.
+    const [kelasId, setKelasId] = useState<string | number>(data?.kelas_id ?? "")
 
-    const [tanggal, setTanggal] = useState<string>("")
-    const [waktuMulai, setWaktuMulai] = useState<string>("")
-    const [waktuSelesai, setWaktuSelesai] = useState<string>("")
-    const [materi, setMateri] = useState<string>("")
+    const [tanggal, setTanggal] = useState<string>(
+        data?.tanggal ? moment(data.tanggal).format("YYYY-MM-DD") : ""
+    )
+    const [waktuMulai, setWaktuMulai] = useState<string>(data?.waktu_mulai ?? "")
+    const [waktuSelesai, setWaktuSelesai] = useState<string>(data?.waktu_selesai ?? "")
+    const [materi, setMateri] = useState<string>(data?.materi ?? "")
 
     const { data: kelasDataList, isLoading: isLoadingMentorDataList } = useKelas({
         paginate: false
     })
-
-    // Prefill saat edit
-    useEffect(() => {
-        if (!data || isLoading) return
-
-        setKelasId(data.kelas_id ?? "")
-
-        setTanggal(data.tanggal ?? "")
-        setWaktuMulai(data.waktu_mulai ?? "")
-        setWaktuSelesai(data.waktu_selesai ?? "")
-        setMateri(data.materi ?? "")
-    }, [data, isLoading])
 
     const submitHandler = (e: FormEvent) => {
         e.preventDefault()

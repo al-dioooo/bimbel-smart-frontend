@@ -6,6 +6,7 @@ import moment from 'moment'
 import { Card } from '@/components/ui/card'
 import { ChevronLeft, ChevronRight } from '@/components/icons/outline'
 import { useJadwal } from '@/hooks/repositories/use-jadwal'
+import { useAccess } from '@/hooks/use-user'
 import { MONTHS } from '@/lib/format'
 import { cn } from '@/lib/utils'
 import type { Jadwal } from '@/lib/types'
@@ -26,8 +27,11 @@ export default function MiniCalendar({ selectedDate, onSelectDate }: Props) {
     const year = cursor.getFullYear()
     const month = cursor.getMonth()
 
+    const { scope } = useAccess()
+
     // Dot markers for days that actually have a jadwal.
     const { data } = useJadwal({
+        ...scope,
         from: moment([year, month, 1]).format('YYYY-MM-DD'),
         to: moment([year, month, 1]).endOf('month').format('YYYY-MM-DD'),
         paginate: false,

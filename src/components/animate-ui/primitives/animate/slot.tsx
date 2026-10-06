@@ -58,31 +58,61 @@ function mergeProps<T extends HTMLElement>(
   return merged;
 }
 
+/**
+ * `motion.create()` mints a brand new component type on every call, so calling
+ * it while rendering — even memoised — remounts the wrapped subtree and drops
+ * its state whenever the memo recomputes. Caching per element type at module
+ * scope means a given child always resolves to the same motion component.
+ */
+const motionByTag = new Map<string, React.ElementType>();
+const motionByComponent = new WeakMap<object, React.ElementType>();
+
+function motionComponentFor(type: React.ElementType): React.ElementType {
+  if (typeof type === 'string') {
+    let cached = motionByTag.get(type);
+    if (!cached) {
+      cached = motion.create(type);
+      motionByTag.set(type, cached);
+    }
+    return cached;
+  }
+
+  let cached = motionByComponent.get(type as object);
+  if (!cached) {
+    cached = motion.create(type);
+    motionByComponent.set(type as object, cached);
+  }
+  return cached;
+}
+
 function Slot<T extends HTMLElement = HTMLElement>({
   children,
   ref,
   ...props
 }: SlotProps<T>) {
+  // Checked first: `children.type` below assumes an element, and this component
+  // holds no hooks, so returning early is safe.
+  if (!React.isValidElement(children)) return null;
+
   const isAlreadyMotion =
     typeof children.type === 'object' &&
     children.type !== null &&
     isMotionComponent(children.type);
 
-  const Base = React.useMemo(
-    () =>
-      isAlreadyMotion
-        ? (children.type as React.ElementType)
-        : motion.create(children.type as React.ElementType),
-    [isAlreadyMotion, children.type],
-  );
-
-  if (!React.isValidElement(children)) return null;
+  const Base = isAlreadyMotion
+    ? (children.type as React.ElementType)
+    : motionComponentFor(children.type as React.ElementType);
 
   const { ref: childRef, ...childProps } = children.props as AnyProps;
 
   const mergedProps = mergeProps(childProps, props);
 
+  // `static-components` cannot see through the cache above, and an `asChild`
+  // primitive cannot hoist a type it only learns at render. The cache is what
+  // makes this safe: a given child type always resolves to the same component,
+  // so the subtree is never remounted, which is the harm the rule guards.
   return (
+    // eslint-disable-next-line react-hooks/static-components
     <Base {...mergedProps} ref={mergeRefs(childRef as React.Ref<T>, ref)} />
   );
 }

@@ -13,6 +13,7 @@ import SearchInput from "@/components/data/search-input"
 import { useListParams } from "@/components/data/use-list-params"
 
 import { useReportAbsensiByKelas } from "@/hooks/repositories/use-report"
+import { useAccess } from "@/hooks/use-user"
 import { attendance } from "@/lib/status"
 import type { ReportAbsensiSiswaRow } from "@/lib/types"
 
@@ -31,7 +32,11 @@ export default function ReportAbsensiDetailPage({ params }: { params: Promise<{ 
         toggleSort,
     } = useListParams()
 
+    const { scope } = useAccess()
+
+    // With mentor_id the API returns kelas: null for a kelas the mentor does not teach.
     const { data, error, isLoading } = useReportAbsensiByKelas(Number(id), {
+        ...scope,
         page,
         search,
         order_by: orderBy,
@@ -40,6 +45,14 @@ export default function ReportAbsensiDetailPage({ params }: { params: Promise<{ 
 
     const kelas = data?.kelas
     const rekap = data?.rekap
+
+    if (data && !kelas) {
+        return (
+            <div className="rounded-xl border border-neutral-200 bg-neutral-50 px-6 py-12 text-center text-sm text-neutral-500">
+                Kelas tidak ditemukan.
+            </div>
+        )
+    }
 
     const totals = (rekap?.data ?? []).reduce(
         (acc, row) => ({

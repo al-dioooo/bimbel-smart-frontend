@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useEffect, useState, type FormEvent } from "react"
+import { use, useState, type FormEvent } from "react"
 import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
@@ -22,14 +22,19 @@ export default function EditAturanGajiPage({ params }: { params: Promise<{ id: s
 
     const { data, isLoading, mutate } = useAturanGajiById(Number(id))
 
-    const [tarif, setTarif] = useState<string>("")
     const [errors, setErrors] = useState<Record<string, string[]>>({})
     const [isSubmitting, setIsSubmitting] = useState(false)
 
-    useEffect(() => {
-        if (!data || isLoading) return
+    // The tarif field re-seeds whenever a different record loads, but stays
+    // editable in between. Adjusting during render replaces the effect that
+    // used to re-run — and clobber in-progress edits — on every revalidation.
+    const [tarif, setTarif] = useState<string>("")
+    const [seededId, setSeededId] = useState<number | null>(null)
+
+    if (data && !isLoading && seededId !== data.id) {
+        setSeededId(data.id)
         setTarif(data.tarif != null ? String(data.tarif) : "")
-    }, [data, isLoading])
+    }
 
     const submitHandler = async (e: FormEvent) => {
         e.preventDefault()

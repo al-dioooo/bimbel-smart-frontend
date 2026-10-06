@@ -34,7 +34,12 @@ const SiswaSelector = ({ data, onSubmit }: SiswaSelectorProps) => {
     const [isOpen, setIsOpen] = useState(false)
     const [selectedSiswa, setSelectedSiswa] = useState<Siswa[] | null>(data ?? null)
 
-    const openModal = () => setIsOpen(true)
+    // Re-seed the staged picks each time the sheet opens, so it always starts
+    // from the current selection and closing without saving discards edits.
+    const openModal = () => {
+        setSelectedSiswa(data ?? null)
+        setIsOpen(true)
+    }
     const closeModal = () => {
         setIsOpen(false)
         setPage(1)
@@ -45,10 +50,6 @@ const SiswaSelector = ({ data, onSubmit }: SiswaSelectorProps) => {
     const [searchTemp, setSearchTemp] = useState<string>("")
     const [search, setSearch] = useState<string | null>("")
     const [page, setPage] = useState<number>(1)
-
-    useEffect(() => {
-        setSelectedSiswa(data ?? null)
-    }, [data])
 
     useEffect(() => {
         const timeOut = setTimeout(() => {
@@ -151,25 +152,19 @@ const SiswaSelector = ({ data, onSubmit }: SiswaSelectorProps) => {
     )
 }
 
-export default function Form({ data, isLoading = false, onSubmit, errors }: Props) {
-    const [nama, setNama] = useState<string>("")
-    const [tingkat, setTingkat] = useState<string>("")
-    const [mentor, setMentor] = useState<number>()
+export default function Form({ data, onSubmit, errors }: Props) {
+    // Seeded straight from `data`. The caller keys this component on the record
+    // id, so a freshly loaded kelas remounts and re-seeds; a background SWR
+    // revalidation of the same record no longer wipes what is being typed.
+    const [nama, setNama] = useState<string>(data?.nama ?? "")
+    const [tingkat, setTingkat] = useState<string>(data?.tingkat ?? "")
+    const [mentor, setMentor] = useState<number | undefined>(data?.mentor_id)
 
     const [selectedSiswa, setSelectedSiswa] = useState<Siswa[] | null>(data?.siswa ?? null)
 
     const { data: mentorDataList, isLoading: isLoadingMentorDataList } = useMentor({
         paginate: false
     })
-
-    useEffect(() => {
-        if (data && !isLoading) {
-            setNama(data.nama)
-            setTingkat(data.tingkat)
-            setMentor(data.mentor_id)
-            setSelectedSiswa(data.siswa ?? null)
-        }
-    }, [data, isLoading])
 
     const updateSelectedSiswa = (value: Siswa[]) => {
         setSelectedSiswa(value)
