@@ -1,10 +1,12 @@
 'use client'
 
+import moment from "moment"
+
 import PageHeader from "@/components/ui/page-header"
 import OutlineButton from "@/components/buttons/outline"
 import MenuAction from "@/components/menu-action"
 import Pagination from "@/components/pagination"
-import { CircleDashedPlus } from "@/components/icons/outline"
+import { CircleDashedPlus, Pencil } from "@/components/icons/outline"
 
 import DataTable, { type Column } from "@/components/data/data-table"
 import SearchInput from "@/components/data/search-input"
@@ -15,6 +17,7 @@ import { useDeleteResource } from "@/components/data/use-delete-resource"
 
 import { useJadwal } from "@/hooks/repositories/use-jadwal"
 import { useKelas } from "@/hooks/repositories/use-kelas"
+import { useAccess } from "@/hooks/use-user"
 import { formatDate, formatTimeRange } from "@/lib/format"
 import type { Jadwal, Kelas } from "@/lib/types"
 
@@ -27,15 +30,18 @@ export default function ListJadwalPage() {
         toggleSort, updateFilter, removeFilter, activeFilters,
     } = useListParams(FILTER_KEYS)
 
+    const { isAdmin, scope } = useAccess()
+
     const { data, mutate, error, isLoading } = useJadwal({
         page,
         search,
         ...activeFilters,
+        ...scope,
         order_by: orderBy,
         direction,
     })
 
-    const { data: kelasOptions, isLoading: isLoadingKelas } = useKelas({ paginate: false })
+    const { data: kelasOptions, isLoading: isLoadingKelas } = useKelas({ paginate: false, ...scope })
 
     // The list endpoint returns a flat array when paginate=false.
     const kelasSelectOptions: SelectOption[] = ((kelasOptions as unknown as Kelas[]) ?? []).map((kelas) => ({
@@ -65,12 +71,22 @@ export default function ListJadwalPage() {
             header: <span className="sr-only">Aksi</span>,
             headerClassName: 'relative',
             cellClassName: 'text-right',
-            render: (row) => (
+            // Mentors cannot edit a jadwal directly; they request a change to an upcoming one.
+            render: (row) => isAdmin ? (
                 <MenuAction
                     showDetail={false}
                     editLink={`/jadwal/${row.id}/edit`}
                     onDelete={() => remove.request(row)}
                 />
+            ) : moment(row.tanggal).isSameOrAfter(moment(), 'day') && (
+                <OutlineButton
+                    as="link"
+                    href={`/jadwal/pengajuan/create?jadwal_id=${row.id}`}
+                    className="text-xs"
+                    icon={<Pencil className="w-4 h-4" />}
+                >
+                    Ajukan Perubahan
+                </OutlineButton>
             ),
         },
     ]
@@ -101,9 +117,11 @@ export default function ListJadwalPage() {
                             ]}
                         />
                     </div>
-                    <OutlineButton as="link" href="/jadwal/create" className="text-xs" icon={<CircleDashedPlus className="w-5 h-5" />}>
-                        Tambah Jadwal
-                    </OutlineButton>
+                    {isAdmin && (
+                        <OutlineButton as="link" href="/jadwal/create" className="text-xs" icon={<CircleDashedPlus className="w-5 h-5" />}>
+                            Tambah Jadwal
+                        </OutlineButton>
+                    )}
                 </div>
 
                 <DataTable

@@ -3,7 +3,9 @@
 import { toast } from "sonner"
 
 import PageHeader from "@/components/ui/page-header"
+import OutlineButton from "@/components/buttons/outline"
 import Pagination from "@/components/pagination"
+import { CircleDashedPlus } from "@/components/icons/outline"
 import PengajuanAction from "@/components/pengajuan-action"
 
 import DataTable, { type Column } from "@/components/data/data-table"
@@ -12,6 +14,7 @@ import FilterModal, { type SelectOption } from "@/components/data/filter-modal"
 import { useListParams } from "@/components/data/use-list-params"
 
 import { usePengajuanJadwal } from "@/hooks/repositories/use-pengajuan-jadwal"
+import { useAccess } from "@/hooks/use-user"
 import api from "@/lib/axios"
 import { formatDate, formatTimeRange } from "@/lib/format"
 import { pengajuanStatus, type PengajuanStatus } from "@/lib/status"
@@ -31,10 +34,13 @@ export default function ListPengajuanJadwalPage() {
         toggleSort, updateFilter, removeFilter, activeFilters,
     } = useListParams(FILTER_KEYS)
 
+    const { isAdmin, scope } = useAccess()
+
     const { data, mutate, error, isLoading } = usePengajuanJadwal({
         page,
         search,
         ...activeFilters,
+        ...scope,
         order_by: orderBy,
         direction,
     })
@@ -102,11 +108,12 @@ export default function ListPengajuanJadwalPage() {
             header: <span className="sr-only">Status</span>,
             headerClassName: 'relative',
             cellClassName: 'text-right',
+            // Only admins decide; mentors see the status of their own requests.
             render: (row) => (
                 <PengajuanAction
                     status={row.status}
-                    onApprove={() => updateStatus(row.id, 'diterima')}
-                    onReject={() => updateStatus(row.id, 'ditolak')}
+                    onApprove={isAdmin ? () => updateStatus(row.id, 'diterima') : undefined}
+                    onReject={isAdmin ? () => updateStatus(row.id, 'ditolak') : undefined}
                 />
             ),
         },
@@ -116,7 +123,14 @@ export default function ListPengajuanJadwalPage() {
         <div className="space-y-6">
             <PageHeader
                 title="Pengajuan Jadwal"
-                description="Tinjau permintaan perubahan jadwal dari mentor."
+                description={isAdmin
+                    ? "Tinjau permintaan perubahan jadwal dari mentor."
+                    : "Permintaan perubahan jadwal yang Anda ajukan."}
+                action={!isAdmin && (
+                    <OutlineButton as="link" href="/jadwal/pengajuan/create" className="text-xs" icon={<CircleDashedPlus className="w-5 h-5" />}>
+                        Ajukan Perubahan
+                    </OutlineButton>
+                )}
             />
 
             <div className="space-y-6">

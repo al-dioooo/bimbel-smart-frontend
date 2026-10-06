@@ -12,6 +12,7 @@ import DataTable, { type Column } from "@/components/data/data-table"
 import { useListParams } from "@/components/data/use-list-params"
 
 import { useReportGajiByMentor } from "@/hooks/repositories/use-report"
+import { useAccess } from "@/hooks/use-user"
 import { formatCurrency, formatNumber, monthLabel } from "@/lib/format"
 import type { ReportGajiDetailRow } from "@/lib/types"
 
@@ -19,6 +20,7 @@ export default function ReportGajiDetailPage({ params }: { params: Promise<{ id:
     const { id } = use(params)
 
     const { page, orderBy, direction, toggleSort } = useListParams()
+    const { isAdmin } = useAccess()
 
     const { data, error, isLoading } = useReportGajiByMentor(Number(id), {
         page,
@@ -48,7 +50,7 @@ export default function ReportGajiDetailPage({ params }: { params: Promise<{ id:
             <PageHeader
                 title={mentorName ? `Gaji ${mentorName}` : 'Detail Gaji Mentor'}
                 description="Rincian per kelas yang membentuk total gaji."
-                action={
+                action={isAdmin && (
                     <OutlineButton
                         as="link"
                         href="/report/gaji"
@@ -58,7 +60,7 @@ export default function ReportGajiDetailPage({ params }: { params: Promise<{ id:
                     >
                         Kembali
                     </OutlineButton>
-                }
+                )}
             />
 
             <Card>

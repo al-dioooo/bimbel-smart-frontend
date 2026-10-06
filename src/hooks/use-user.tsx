@@ -4,6 +4,7 @@ import { createContext, useContext, type ReactNode } from 'react'
 import useSWR, { type KeyedMutator } from 'swr'
 import type { User } from '@/lib/types'
 import { fetcher } from '@/lib/fetcher'
+import { isAdmin, mentorScope } from '@/lib/access'
 
 // Sanctum-friendly fetcher
 // const fetcher = async (url: string): Promise<User | null> => {
@@ -52,4 +53,10 @@ export function useUser() {
         throw new Error('useUser must be used inside <UserProvider>')
     }
     return ctx
+}
+
+/** Role flag plus the params that narrow API lists to a mentor's own data. */
+export function useAccess() {
+    const { user } = useUser()
+    return { user, isAdmin: isAdmin(user), scope: mentorScope(user) }
 }

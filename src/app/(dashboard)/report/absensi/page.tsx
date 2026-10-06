@@ -12,6 +12,7 @@ import { useListParams } from "@/components/data/use-list-params"
 
 import { useReportAbsensi } from "@/hooks/repositories/use-report"
 import { useKelas } from "@/hooks/repositories/use-kelas"
+import { useAccess } from "@/hooks/use-user"
 import { monthLabel } from "@/lib/format"
 import type { ReportAbsensiRow, Kelas } from "@/lib/types"
 
@@ -24,6 +25,8 @@ export default function ReportAbsensiPage() {
         toggleSort, updateFilter, removeFilter, activeFilters,
     } = useListParams(FILTER_KEYS)
 
+    const { scope } = useAccess()
+
     // Previously this page called useKelas() — the source even noted
     // "use nya belom diubah" — so the headers and the body described
     // different things entirely.
@@ -31,11 +34,12 @@ export default function ReportAbsensiPage() {
         page,
         search,
         ...activeFilters,
+        ...scope,
         order_by: orderBy,
         direction,
     })
 
-    const { data: kelasOptions, isLoading: isLoadingKelas } = useKelas({ paginate: false })
+    const { data: kelasOptions, isLoading: isLoadingKelas } = useKelas({ paginate: false, ...scope })
 
     const kelasSelectOptions: SelectOption[] = ((kelasOptions as unknown as Kelas[]) ?? []).map((kelas) => ({
         value: kelas.id,

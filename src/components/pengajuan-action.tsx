@@ -18,8 +18,8 @@ export default function PengajuanAction({ status, onApprove, onReject }: Props) 
     const key = normalizePengajuanStatus(status)
     const { label, tone } = pengajuanStatus[key]
 
-    // Settled rows are read-only.
-    if (key !== 'pending') {
+    // Settled rows, and callers that pass no handlers (mentors), are read-only.
+    if (key !== 'pending' || (!onApprove && !onReject)) {
         return <span className={cn(base, toneClasses[tone], 'border')}>{label}</span>
     }
 

@@ -12,6 +12,8 @@ import {
 } from '@/components/base/dialog'
 import { ArrowNarrowRight, Search } from '@/components/icons/outline'
 import { Highlight } from '@/components/base/highlight'
+import { useUser } from '@/hooks/use-user'
+import { canAccess } from '@/lib/access'
 
 type Props = {
     from: DialogFlipDirection
@@ -33,8 +35,18 @@ const PAGES = [
 ]
 
 export default function GlobalSearch({ from }: Props) {
+    const { user } = useUser()
     const [isOpen, setIsOpen] = useState(false)
     const [search, setSearch] = useState('')
+
+    // Only pages this role may open; mentors get their own slip instead of the list.
+    const pages = useMemo(() => {
+        if (!user) return []
+        const own = user.mentor
+            ? [{ href: `/report/gaji/${user.mentor.id}`, label: 'Gaji Saya', group: 'Gaji' }]
+            : []
+        return [...PAGES, ...own].filter((page) => canAccess(user, page.href))
+    }, [user])
 
     const searchInput = useRef<HTMLInputElement>(null)
 
@@ -60,13 +72,13 @@ export default function GlobalSearch({ from }: Props) {
     // Was case-sensitive `label.includes(search)`.
     const results = useMemo(() => {
         const query = search.trim().toLowerCase()
-        if (!query) return PAGES
-        return PAGES.filter(
+        if (!query) return pages
+        return pages.filter(
             (page) =>
                 page.label.toLowerCase().includes(query) ||
                 page.group.toLowerCase().includes(query)
         )
-    }, [search])
+    }, [search, pages])
 
     const close = () => {
         setIsOpen(false)

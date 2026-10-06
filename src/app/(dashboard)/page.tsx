@@ -13,13 +13,15 @@ import JadwalDashboard from "@/components/jadwalDashboard"
 import { School, Users, Wallet } from "@/components/icons/outline"
 
 import { useDashboardStats } from "@/hooks/repositories/use-dashboard"
+import { useAccess } from "@/hooks/use-user"
 import { formatCurrency, formatNumber } from "@/lib/format"
 
 export default function Dashboard() {
     const [selectedDate, setSelectedDate] = useState(new Date())
+    const { scope } = useAccess()
 
     // Every figure on this page used to be a literal: "9", "16", "480.000".
-    const { data: stats, isLoading, error } = useDashboardStats()
+    const { data: stats, isLoading, error } = useDashboardStats(scope)
 
     const periodLabel = stats?.periode
         ? `${moment(stats.periode.from).format('D MMM')} – ${moment(stats.periode.to).format('D MMM YYYY')}`

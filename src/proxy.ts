@@ -12,7 +12,8 @@ const AUTH_COOKIE = "bimbel_smart_auth_token"
  * The previous version also guarded `/admin/*` prefixes that do not exist,
  * redirected to a `/forbidden` route that was never built, and read
  * `NEXT_PUBLIC_API_URL`, which is not defined anywhere (the app uses API_URL).
- * Role-based access is not modelled in the UI yet, so this stays a token check.
+ * The token cookie carries no role, so this stays a token check; the role gate
+ * lives in app/(dashboard)/layout.tsx (see lib/access.ts).
  */
 export function proxy(req: NextRequest) {
     const token = req.cookies.get(AUTH_COOKIE)?.value ?? null

@@ -4,6 +4,8 @@ export interface User {
     username: string
     email: string
     role: number
+    /** Loaded by /login and /me; null for admins. */
+    mentor?: Mentor | null
     created_at: string
     updated_at: string
 }
