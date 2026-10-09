@@ -22,6 +22,8 @@ type Props = {
     to?: string
     draft: AttendanceDraft
     onDraftChange: (next: AttendanceDraft) => void
+    /** Read-only columns for jadwal after today (mentors; the API refuses them). */
+    lockFuture?: boolean
 }
 
 export default function AbsensiTable({
@@ -31,8 +33,11 @@ export default function AbsensiTable({
     to,
     draft,
     onDraftChange,
+    lockFuture = false,
 }: Props) {
     const hasKelas = !!kelasId
+    const isLocked = (jadwal: Jadwal) =>
+        lockFuture && moment(jadwal.tanggal as unknown as string).isAfter(moment(), 'day')
 
     // Columns are the class's jadwal; rows are its roster. Both used to be
     // hardcoded arrays (INITIAL_HEADERS / INITIAL_STUDENTS).
@@ -140,13 +145,16 @@ export default function AbsensiTable({
                                                 </span>
                                                 <button
                                                     type="button"
+                                                    disabled={isLocked(jadwal)}
+                                                    title={isLocked(jadwal) ? 'Belum bisa diisi' : undefined}
                                                     onClick={() => toggleColumn(jadwal.id)}
                                                     aria-label={`Tandai semua hadir ${moment(jadwal.tanggal as unknown as string).format('D MMMM')}`}
                                                     className={cn(
                                                         'w-5 h-5 rounded border cursor-pointer flex items-center justify-center transition-colors',
                                                         allPresent
                                                             ? 'bg-sky-500 border-sky-500 text-white'
-                                                            : 'bg-white border-neutral-300 hover:border-sky-400'
+                                                            : 'bg-white border-neutral-300 hover:border-sky-400',
+                                                        isLocked(jadwal) && 'cursor-not-allowed opacity-40 hover:border-neutral-300'
                                                     )}
                                                 >
                                                     {allPresent && <Check className="w-3 h-3" strokeWidth={3} />}
@@ -191,6 +199,15 @@ export default function AbsensiTable({
 
                                         {columns.map((jadwal) => {
                                             const code = draft[jadwal.id]?.[student.id] ?? null
+
+                                            if (isLocked(jadwal)) {
+                                                return (
+                                                    <td key={jadwal.id} className="px-2 py-3 text-center">
+                                                        <span className="text-sm font-semibold text-neutral-200" title="Belum bisa diisi">–</span>
+                                                    </td>
+                                                )
+                                            }
+
                                             return (
                                                 <td key={jadwal.id} className="px-2 py-3 text-center">
                                                     <AbsensiAction onSelect={(status) => setCell(jadwal.id, student.id, status)}>
