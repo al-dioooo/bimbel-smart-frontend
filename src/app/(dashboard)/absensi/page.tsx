@@ -21,7 +21,7 @@ import type { Kelas } from "@/lib/types"
 export default function ListAbsensiPage() {
     const { search, searchTemp, setSearchTemp } = useListParams()
 
-    const { scope } = useAccess()
+    const { isAdmin, scope } = useAccess()
     // Mentors only fill attendance for the kelas they teach.
     const { data: kelasList, isLoading: isLoadingKelas } = useKelas({ paginate: false, ...scope })
 
@@ -140,6 +140,7 @@ export default function ListAbsensiPage() {
                     to={range.to}
                     draft={draft}
                     onDraftChange={setDraft}
+                    lockFuture={!isAdmin}
                 />
             </div>
         </div>

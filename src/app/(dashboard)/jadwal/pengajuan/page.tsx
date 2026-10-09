@@ -9,15 +9,17 @@ import { CircleDashedPlus } from "@/components/icons/outline"
 import PengajuanAction from "@/components/pengajuan-action"
 
 import DataTable, { type Column } from "@/components/data/data-table"
+import ConfirmDialog from "@/components/data/confirm-dialog"
 import SearchInput from "@/components/data/search-input"
 import FilterModal, { type SelectOption } from "@/components/data/filter-modal"
 import { useListParams } from "@/components/data/use-list-params"
+import { useDeleteResource } from "@/components/data/use-delete-resource"
 
 import { usePengajuanJadwal } from "@/hooks/repositories/use-pengajuan-jadwal"
 import { useAccess } from "@/hooks/use-user"
 import api from "@/lib/axios"
 import { formatDate, formatTimeRange } from "@/lib/format"
-import { pengajuanStatus, type PengajuanStatus } from "@/lib/status"
+import { normalizePengajuanStatus, pengajuanStatus, type PengajuanStatus } from "@/lib/status"
 import type { PaginatedResponse, PengajuanJadwal } from "@/lib/types"
 
 const FILTER_KEYS = ['status', 'from', 'to']
@@ -83,6 +85,14 @@ export default function ListPengajuanJadwalPage() {
         }
     }
 
+    // Mentors may withdraw their own request while it is still pending.
+    const withdraw = useDeleteResource<PengajuanJadwal>({
+        endpoint: '/pengajuan-jadwal',
+        onDeleted: () => mutate(),
+        successMessage: 'Pengajuan dibatalkan',
+        errorMessage: 'Gagal membatalkan pengajuan',
+    })
+
     const columns: Column<PengajuanJadwal>[] = [
         { key: 'kelas', header: 'Kelas', cellClassName: 'font-medium text-neutral-900', render: (row) => row.jadwal?.kelas?.nama ?? '-' },
         { key: 'mentor', header: 'Mentor', render: (row) => row.jadwal?.kelas?.mentor?.user?.name ?? '-' },
@@ -110,11 +120,18 @@ export default function ListPengajuanJadwalPage() {
             cellClassName: 'text-right',
             // Only admins decide; mentors see the status of their own requests.
             render: (row) => (
-                <PengajuanAction
-                    status={row.status}
-                    onApprove={isAdmin ? () => updateStatus(row.id, 'diterima') : undefined}
-                    onReject={isAdmin ? () => updateStatus(row.id, 'ditolak') : undefined}
-                />
+                <div className="inline-flex items-center justify-end gap-2">
+                    {!isAdmin && normalizePengajuanStatus(row.status) === 'pending' && (
+                        <OutlineButton type="button" buttonType="danger" className="text-xs" onClick={() => withdraw.request(row)}>
+                            Batalkan
+                        </OutlineButton>
+                    )}
+                    <PengajuanAction
+                        status={row.status}
+                        onApprove={isAdmin ? () => updateStatus(row.id, 'diterima') : undefined}
+                        onReject={isAdmin ? () => updateStatus(row.id, 'ditolak') : undefined}
+                    />
+                </div>
             ),
         },
     ]
@@ -169,6 +186,15 @@ export default function ListPengajuanJadwalPage() {
             </div>
 
             <Pagination links={data?.links} from={data?.from} to={data?.to} total={data?.total} />
+
+            <ConfirmDialog
+                isOpen={withdraw.isOpen}
+                onClose={withdraw.cancel}
+                onConfirm={withdraw.confirm}
+                title="Batalkan Pengajuan"
+                message={<>Batalkan pengajuan untuk <span className="font-semibold">{withdraw.target?.jadwal?.kelas?.nama}</span> pada {formatDate(withdraw.target?.tanggal_sebelum)}?</>}
+                confirmLabel="Batalkan"
+            />
         </div>
     )
 }
