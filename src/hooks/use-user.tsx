@@ -2,6 +2,7 @@
 
 import { createContext, useContext, type ReactNode } from 'react'
 import useSWR, { type KeyedMutator } from 'swr'
+import { isAxiosError } from 'axios'
 import type { User } from '@/lib/types'
 import { fetcher } from '@/lib/fetcher'
 import { isAdmin, mentorScope } from '@/lib/access'
@@ -22,6 +23,8 @@ type UserContextValue = {
     user: User | null
     isLoading: boolean
     isError: boolean
+    /** HTTP status of the failed /me request, if it got one (none when the API is unreachable). */
+    errorStatus?: number
     mutateUser: KeyedMutator<User | null>
 }
 
@@ -41,6 +44,7 @@ export function UserProvider({ children }: { children: ReactNode }) {
         user: data ?? null,
         isLoading,
         isError: !!error,
+        errorStatus: isAxiosError(error) ? error.response?.status : undefined,
         mutateUser: mutate,
     }
 
