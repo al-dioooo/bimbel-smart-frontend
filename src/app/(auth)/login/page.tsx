@@ -3,6 +3,7 @@
 import { Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
+import Link from "next/link"
 
 import Input from "@/components/forms/input"
 import Label from "@/components/forms/label"
@@ -131,6 +132,13 @@ export default function LoginPage() {
                                 error={errors.length > 0}
                                 disabled={isLoading}
                             />
+                        </div>
+
+                        {/* REQ-012: "Lupa Kata Sandi" on the login page. */}
+                        <div className="text-right">
+                            <Link href="/lupa-kata-sandi" className="text-xs font-semibold text-sky-500 hover:text-sky-600">
+                                Lupa kata sandi?
+                            </Link>
                         </div>
 
                         <div className="pt-3">
