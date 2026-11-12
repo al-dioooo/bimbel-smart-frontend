@@ -69,7 +69,7 @@ export default function ListKelasPage() {
 
     return (
         <div className="space-y-6">
-            <PageHeader title="List Kelas" />
+            <PageHeader title="Daftar Kelas" />
 
             <div className="space-y-6">
                 <div className="flex flex-wrap items-center justify-between gap-2">

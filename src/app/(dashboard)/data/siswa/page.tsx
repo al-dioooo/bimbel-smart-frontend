@@ -73,7 +73,7 @@ export default function ListSiswaPage() {
 
     return (
         <div className="space-y-6">
-            <PageHeader title="List Siswa" />
+            <PageHeader title="Daftar Siswa" />
 
             <div className="space-y-6">
                 <div className="flex flex-wrap items-center justify-between gap-2">

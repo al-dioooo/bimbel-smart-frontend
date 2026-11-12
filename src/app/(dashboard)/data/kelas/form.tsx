@@ -118,7 +118,7 @@ const SiswaSelector = ({ data, onSubmit }: SiswaSelectorProps) => {
                                         <tr className="text-center">
                                             <td colSpan={100} className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
                                                 <div className="flex items-center justify-between space-x-4">
-                                                    <hr className="grow border-current/50" /> <span>No Data Available</span> <hr className="grow border-current/50" />
+                                                    <hr className="grow border-current/50" /> <span>Tidak ada data</span> <hr className="grow border-current/50" />
                                                 </div>
                                             </td>
                                         </tr>
@@ -234,7 +234,7 @@ export default function Form({ data, onSubmit, errors }: Props) {
                                         <tr className="text-center">
                                             <td colSpan={100} className="px-6 py-4 text-xs text-neutral-500 whitespace-nowrap">
                                                 <div className="flex items-center justify-between space-x-4">
-                                                    <hr className="grow border-current/50" /> <span>No Data Available</span> <hr className="grow border-current/50" />
+                                                    <hr className="grow border-current/50" /> <span>Tidak ada data</span> <hr className="grow border-current/50" />
                                                 </div>
                                             </td>
                                         </tr>
@@ -249,7 +249,7 @@ export default function Form({ data, onSubmit, errors }: Props) {
                                                 {row.kontak}
                                             </td>
                                             <td className="px-3 py-2 text-xs font-medium text-right whitespace-nowrap">
-                                                <OutlineButton onClick={() => removeSelectedSiswa(row)} type="button" buttonType="danger" className="text-xs" icon={<Trash className="w-5 h-5" />}>Delete</OutlineButton>
+                                                <OutlineButton onClick={() => removeSelectedSiswa(row)} type="button" buttonType="danger" className="text-xs" icon={<Trash className="w-5 h-5" />}>Hapus</OutlineButton>
                                             </td>
                                         </tr>
                                     ))}
@@ -263,7 +263,7 @@ export default function Form({ data, onSubmit, errors }: Props) {
             </FormSection>
 
             <div className="flex items-center justify-end text-sm">
-                <PrimaryButton type="submit">Submit</PrimaryButton>
+                <PrimaryButton type="submit">Simpan</PrimaryButton>
             </div>
         </form>
     )
