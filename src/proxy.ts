@@ -15,9 +15,16 @@ const AUTH_COOKIE = "bimbel_smart_auth_token"
  * The token cookie carries no role, so this stays a token check; the role gate
  * lives in app/(dashboard)/layout.tsx (see lib/access.ts).
  */
+/** Lupa kata sandi (REQ-012–REQ-015) works without a session. */
+const PASSWORD_ROUTES = ["/lupa-kata-sandi", "/reset-password"]
+
 export function proxy(req: NextRequest) {
     const token = req.cookies.get(AUTH_COOKIE)?.value ?? null
     const isLoginRoute = req.nextUrl.pathname === "/login"
+
+    if (PASSWORD_ROUTES.includes(req.nextUrl.pathname)) {
+        return NextResponse.next()
+    }
 
     if (isLoginRoute) {
         return token ? NextResponse.redirect(new URL("/", req.url)) : NextResponse.next()
