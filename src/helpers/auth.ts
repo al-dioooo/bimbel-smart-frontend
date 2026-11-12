@@ -12,12 +12,16 @@ export async function login(identifier: string, password: string) {
 
 /**
  * REQ-010: the route handler revokes the token on the API and drops the
- * cookie whatever the API answers, so a failed call still logs the user out.
+ * cookie whatever the API answers. Only when the route handler itself cannot
+ * be reached is the cookie still set; then this returns false and the user
+ * stays signed in, since the login page would send them straight back.
  */
-export async function logout() {
+export async function logout(): Promise<boolean> {
     try {
         await auth.post('/logout')
-    } finally {
-        await mutate('/me', null, { revalidate: false })
+    } catch {
+        return false
     }
+    await mutate('/me', null, { revalidate: false })
+    return true
 }
