@@ -26,6 +26,7 @@ const PAGES = [
     { href: '/jadwal', label: 'Kalender Jadwal', group: 'Jadwal' },
     { href: '/jadwal/list', label: 'List Jadwal', group: 'Jadwal' },
     { href: '/jadwal/pengajuan', label: 'Pengajuan Jadwal', group: 'Jadwal' },
+    { href: '/gaji/proses', label: 'Proses Gaji', group: 'Gaji' },
     { href: '/aturan-gaji', label: 'Aturan Gaji', group: 'Gaji' },
     { href: '/report/gaji', label: 'Konversi Gaji Mentor', group: 'Gaji' },
     { href: '/data/kelas', label: 'Kelas', group: 'Data' },

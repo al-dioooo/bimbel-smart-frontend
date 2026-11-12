@@ -33,8 +33,10 @@ export default function Sidebar() {
                         </li>
                         {isAdmin && (
                             <>
-                                <li>
-                                    <SidebarLink type="main" label="Gaji" href="/aturan-gaji" icon={<Wallet className="w-5 h-5" />} activePath="/aturan-gaji" />
+                                <li className="space-y-1">
+                                    <SidebarLink type="main" label="Gaji" href="/gaji/proses" icon={<Wallet className="w-5 h-5" />} activePath="/gaji" />
+                                    <SidebarLink type="sublink" label="Proses Gaji" href="/gaji/proses" activePath="/gaji/proses" />
+                                    <SidebarLink type="sublink" label="Aturan Gaji" href="/aturan-gaji" activePath="/aturan-gaji" />
                                 </li>
                                 <li className="space-y-1">
                                     <SidebarLink type="main" label="Data" href="/data/kelas" icon={<Database className="w-5 h-5" />} activePath="/data" />
