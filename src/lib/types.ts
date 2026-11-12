@@ -208,6 +208,7 @@ export interface ReportGajiDetailRow {
     tarif: number
     jumlah_kehadiran: number
     nominal: number
+    status: 'draft' | 'final'
 }
 
 export interface DashboardStats {

@@ -1,5 +1,6 @@
 import useSWR from 'swr'
 
+import api from '@/lib/axios'
 import { fetcher } from '@/lib/fetcher'
 import type {
     PaginatedResponse,
@@ -7,6 +8,7 @@ import type {
     ReportAbsensiDetail,
     ReportGajiRow,
     ReportGajiDetailRow,
+    PenyesuaianGaji,
 } from '@/lib/types'
 
 export function useReportAbsensi(params: Record<string, unknown>) {
@@ -36,11 +38,19 @@ export function useReportGaji(params: Record<string, unknown>) {
     return { data, error, mutate, isLoading, isValidating }
 }
 
+export type ReportGajiDetail = {
+    rows: PaginatedResponse<ReportGajiDetailRow>
+    /** REQ-064: the bonus/potongan of the same filter. */
+    penyesuaian: PenyesuaianGaji[]
+}
+
+/** The per-kelas rows plus the adjustments, which sit beside `data` in the response. */
 export function useReportGajiByMentor(mentorId: number | null, params: Record<string, unknown>) {
     const key = mentorId ? ([`/report/gaji/${mentorId}`, params] as const) : null
-    const { data, error, mutate, isLoading } = useSWR<PaginatedResponse<ReportGajiDetailRow>>(
+    const { data, error, mutate, isLoading } = useSWR<ReportGajiDetail>(
         key,
-        ([url, p]: readonly [string, Record<string, unknown>]) => fetcher<PaginatedResponse<ReportGajiDetailRow>>(url, p)
+        ([url, p]: readonly [string, Record<string, unknown>]) =>
+            api.get(url, { params: p }).then((r) => ({ rows: r.data.data, penyesuaian: r.data.penyesuaian ?? [] }))
     )
     return { data, error, mutate, isLoading }
 }
