@@ -36,6 +36,9 @@ export default function ConfirmDialog({
         try {
             await onConfirm()
             onClose()
+        } catch {
+            // onConfirm has already told the user what went wrong; the dialog
+            // stays open so they can retry or cancel.
         } finally {
             setIsSubmitting(false)
         }
