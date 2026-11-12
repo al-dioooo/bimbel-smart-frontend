@@ -1,7 +1,8 @@
 'use client'
 
-import { useMemo } from 'react'
+import { useEffect, useMemo } from 'react'
 import moment from 'moment'
+import { toast } from 'sonner'
 
 import AbsensiAction from '@/components/absensi-action'
 import { ChevronDown, Check } from '@/components/icons/outline'
@@ -76,6 +77,27 @@ export default function AbsensiTable({
         })
         return map
     }, [absensiData])
+
+    // Someone else may record a siswa that is still in this draft. Sending it
+    // would make the API refuse the whole jadwal (input ganda) on every retry,
+    // so a cell that is now recorded leaves the draft.
+    useEffect(() => {
+        let dropped = 0
+        const next: AttendanceDraft = {}
+        Object.entries(draft).forEach(([jadwalId, column]) => {
+            next[Number(jadwalId)] = Object.fromEntries(
+                Object.entries(column).filter(([siswaId, status]) => {
+                    const stale = !!recorded[Number(jadwalId)]?.[Number(siswaId)]
+                    if (stale && status) dropped += 1
+                    return !stale
+                })
+            )
+        })
+        if (dropped > 0) {
+            onDraftChange(next)
+            toast.info(`${dropped} isian dihapus dari draf karena absensinya sudah tercatat.`)
+        }
+    }, [recorded, draft, onDraftChange])
 
     const filtered = useMemo(() => {
         const query = searchQuery.trim().toLowerCase()
