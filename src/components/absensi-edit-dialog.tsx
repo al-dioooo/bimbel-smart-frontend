@@ -5,6 +5,7 @@ import moment from 'moment'
 import { toast } from 'sonner'
 
 import Modal from '@/components/modal'
+import { CATATAN_MAX } from '@/components/absensi-action'
 import PrimaryButton from '@/components/buttons/primary'
 import OutlineButton from '@/components/buttons/outline'
 import api from '@/lib/axios'
@@ -42,6 +43,7 @@ export default function AbsensiEditDialog({ target, onClose, onSaved }: Props) {
 
 function EditForm({ target, onClose, onSaved }: { target: EditTarget; onClose: () => void; onSaved: Props['onSaved'] }) {
     const [status, setStatus] = useState<AttendanceCode | null>(normalizeAttendance(target.record.status))
+    const [catatan, setCatatan] = useState(target.record.catatan ?? '')
     const [error, setError] = useState<string | null>(null)
     const [isSaving, setIsSaving] = useState(false)
 
@@ -52,7 +54,8 @@ function EditForm({ target, onClose, onSaved }: { target: EditTarget; onClose: (
         setIsSaving(true)
         setError(null)
         try {
-            await api.put(`/absensi/${target.record.id}`, { status })
+            // REQ-049: status and note; an emptied note is cleared.
+            await api.put(`/absensi/${target.record.id}`, { status, catatan: catatan.trim() || null })
             toast.success('Data absensi berhasil diperbarui')
             await onSaved()
             onClose()
@@ -90,6 +93,22 @@ function EditForm({ target, onClose, onSaved }: { target: EditTarget; onClose: (
                     ))}
                 </div>
             </fieldset>
+
+            <div>
+                <label htmlFor="catatan" className="mb-2 block text-sm font-medium text-neutral-700">
+                    Catatan <span className="font-normal text-neutral-400">(opsional)</span>
+                </label>
+                <textarea
+                    id="catatan"
+                    value={catatan}
+                    maxLength={CATATAN_MAX}
+                    rows={3}
+                    onChange={(e) => setCatatan(e.target.value)}
+                    placeholder="Contoh: salah input, seharusnya izin"
+                    className="w-full rounded-xl border border-neutral-200 p-2 text-sm focus:border-neutral-400 focus:outline-none"
+                />
+                <p className="mt-1 text-right text-xs text-neutral-400">{catatan.length}/{CATATAN_MAX}</p>
+            </div>
 
             {error && (
                 <p role="alert" className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">

@@ -10,7 +10,7 @@ import PrimaryButton from "@/components/buttons/primary"
 import OutlineButton from "@/components/buttons/outline"
 import SelectDescription from "@/components/forms/select-description"
 import SearchInput from "@/components/data/search-input"
-import AbsensiTable, { type AttendanceDraft } from "@/components/absensi-table"
+import AbsensiTable, { type AttendanceDraft, type AttendanceNotes } from "@/components/absensi-table"
 import AbsensiEditDialog, { type EditTarget } from "@/components/absensi-edit-dialog"
 import { useListParams } from "@/components/data/use-list-params"
 import { Check, ArrowNarrowRight } from "@/components/icons/outline"
@@ -29,6 +29,7 @@ export default function ListAbsensiPage() {
 
     const [selectedKelas, setSelectedKelas] = useState<number | null>(null)
     const [draft, setDraft] = useState<AttendanceDraft>({})
+    const [notes, setNotes] = useState<AttendanceNotes>({})
     const [isSaving, setIsSaving] = useState(false)
     const [editing, setEditing] = useState<EditTarget | null>(null)
 
@@ -64,7 +65,12 @@ export default function ListAbsensiPage() {
                 jadwal_id: Number(jadwalId),
                 absensi: Object.entries(column)
                     .filter(([, status]) => !!status)
-                    .map(([siswaId, status]) => ({ siswa_id: Number(siswaId), status: status as string })),
+                    .map(([siswaId, status]) => ({
+                        siswa_id: Number(siswaId),
+                        status: status as string,
+                        // REQ-044: sent only when filled.
+                        ...(notes[Number(jadwalId)]?.[Number(siswaId)]?.trim() ? { catatan: notes[Number(jadwalId)][Number(siswaId)].trim() } : {}),
+                    })),
             }))
             .filter((payload) => payload.absensi.length > 0)
 
@@ -89,7 +95,10 @@ export default function ListAbsensiPage() {
             })
 
             const keep = new Set(failed.map(({ payload }) => payload.jadwal_id))
-            setDraft((current) => Object.fromEntries(Object.entries(current).filter(([jadwalId]) => keep.has(Number(jadwalId)))))
+            const onlyFailed = <T,>(current: Record<number, T>) =>
+                Object.fromEntries(Object.entries(current).filter(([jadwalId]) => keep.has(Number(jadwalId))))
+            setDraft(onlyFailed)
+            setNotes(onlyFailed)
             await refreshAbsensi()
         } finally {
             setIsSaving(false)
@@ -135,6 +144,7 @@ export default function ListAbsensiPage() {
                                     // The selected class was previously tracked but never used.
                                     setSelectedKelas(value ? Number(value) : null)
                                     setDraft({})
+                                    setNotes({})
                                 }}
                             />
                         </div>
@@ -159,6 +169,8 @@ export default function ListAbsensiPage() {
                     to={range.to}
                     draft={draft}
                     onDraftChange={setDraft}
+                    notes={notes}
+                    onNotesChange={setNotes}
                     lockFuture={!isAdmin}
                     onEditRecorded={isAdmin ? (record, jadwal, siswa) => setEditing({ record, jadwal, siswa }) : undefined}
                 />
@@ -168,6 +180,8 @@ export default function ListAbsensiPage() {
                     sudah tercatat{isAdmin ? ' (klik untuk mengubah)' : '; perubahan dilakukan oleh admin'}.
                     <span className="ml-3 mr-1 font-semibold text-sky-600 underline decoration-dotted underline-offset-4">H</span>
                     belum disimpan.
+                    <span className="ml-3 mr-1 inline-block h-2 w-2 rounded-full bg-amber-400" />
+                    ada catatan.
                 </p>
             </div>
 

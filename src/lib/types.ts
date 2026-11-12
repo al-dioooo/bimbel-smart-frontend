@@ -179,6 +179,8 @@ export interface Absensi {
     siswa?: Siswa
     tanggal: string
     status: string
+    /** REQ-044: optional note per siswa. */
+    catatan?: string | null
     is_open: boolean
     created_at: string
     updated_at: string

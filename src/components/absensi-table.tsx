@@ -19,6 +19,9 @@ import type { Jadwal, Siswa, Absensi } from '@/lib/types'
  */
 export type AttendanceDraft = Record<number, Record<number, AttendanceCode | null>>
 
+/** Notes for the new entries, same keys as the draft (REQ-044). */
+export type AttendanceNotes = Record<number, Record<number, string>>
+
 type Props = {
     kelasId?: number | null
     searchQuery?: string
@@ -26,6 +29,8 @@ type Props = {
     to?: string
     draft: AttendanceDraft
     onDraftChange: (next: AttendanceDraft) => void
+    notes: AttendanceNotes
+    onNotesChange: (next: AttendanceNotes) => void
     /** Read-only columns for jadwal after today (mentors; the API refuses them). */
     lockFuture?: boolean
     /** Admins correct a recorded cell (UC-09); mentors only read it. */
@@ -39,6 +44,8 @@ export default function AbsensiTable({
     to,
     draft,
     onDraftChange,
+    notes,
+    onNotesChange,
     lockFuture = false,
     onEditRecorded,
 }: Props) {
@@ -109,6 +116,13 @@ export default function AbsensiTable({
         onDraftChange({
             ...draft,
             [jadwalId]: { ...(draft[jadwalId] ?? {}), [siswaId]: status },
+        })
+    }
+
+    const setNote = (jadwalId: number, siswaId: number, note: string) => {
+        onNotesChange({
+            ...notes,
+            [jadwalId]: { ...(notes[jadwalId] ?? {}), [siswaId]: note },
         })
     }
 
@@ -226,14 +240,18 @@ export default function AbsensiTable({
                                             if (saved) {
                                                 const savedCode = normalizeAttendance(saved.status)
                                                 const label = savedCode ? attendance[savedCode].label : saved.status
+                                                const catatan = saved.catatan ? ` Catatan: ${saved.catatan}` : ''
                                                 const badge = (
                                                     <span
                                                         className={cn(
-                                                            'inline-flex min-w-7 items-center justify-center rounded-md border px-1.5 py-0.5 text-xs font-semibold',
+                                                            'relative inline-flex min-w-7 items-center justify-center rounded-md border px-1.5 py-0.5 text-xs font-semibold',
                                                             savedCode ? toneClasses[attendance[savedCode].tone] : toneClasses.neutral
                                                         )}
                                                     >
                                                         {savedCode ? attendance[savedCode].short : '?'}
+                                                        {saved.catatan && (
+                                                            <span aria-hidden className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-amber-400 ring-2 ring-white" />
+                                                        )}
                                                     </span>
                                                 )
 
@@ -243,14 +261,14 @@ export default function AbsensiTable({
                                                             <button
                                                                 type="button"
                                                                 onClick={() => onEditRecorded(saved, jadwal, student)}
-                                                                title={`${label}, sudah tercatat. Klik untuk mengubah.`}
+                                                                title={`${label}, sudah tercatat.${catatan} Klik untuk mengubah.`}
                                                                 aria-label={`Ubah absensi ${student.nama} ${moment(jadwal.tanggal as unknown as string).format('D MMMM')}`}
                                                                 className="cursor-pointer rounded-md hover:ring-2 hover:ring-sky-200"
                                                             >
                                                                 {badge}
                                                             </button>
                                                         ) : (
-                                                            <span title={`${label}, sudah tercatat. Perubahan dilakukan oleh admin.`}>{badge}</span>
+                                                            <span title={`${label}, sudah tercatat.${catatan} Perubahan dilakukan oleh admin.`}>{badge}</span>
                                                         )}
                                                     </td>
                                                 )
@@ -266,17 +284,24 @@ export default function AbsensiTable({
 
                                             return (
                                                 <td key={jadwal.id} className="px-2 py-3 text-center">
-                                                    <AbsensiAction onSelect={(status) => setCell(jadwal.id, student.id, status)}>
+                                                    <AbsensiAction
+                                                        onSelect={(status) => setCell(jadwal.id, student.id, status)}
+                                                        note={notes[jadwal.id]?.[student.id]}
+                                                        onNoteChange={(note) => setNote(jadwal.id, student.id, note)}
+                                                    >
                                                         <div className="inline-flex items-center justify-center gap-1 cursor-pointer w-full py-1">
                                                             <span
                                                                 className={cn(
                                                                     'text-sm font-semibold',
                                                                     code ? 'text-sky-600 underline decoration-dotted underline-offset-4' : 'text-neutral-300'
                                                                 )}
-                                                                title={code ? `${attendance[code].label}, belum disimpan` : 'Belum diisi'}
+                                                                title={code ? `${attendance[code].label}, belum disimpan${notes[jadwal.id]?.[student.id] ? `. Catatan: ${notes[jadwal.id][student.id]}` : ''}` : 'Belum diisi'}
                                                             >
                                                                 {code ? attendance[code].short : '–'}
                                                             </span>
+                                                            {code && notes[jadwal.id]?.[student.id] && (
+                                                                <span aria-label="ada catatan" className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                                                            )}
                                                             <ChevronDown className="w-3 h-3 text-neutral-400" />
                                                         </div>
                                                     </AbsensiAction>
