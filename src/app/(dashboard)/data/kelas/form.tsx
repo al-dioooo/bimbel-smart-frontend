@@ -102,7 +102,7 @@ const SiswaSelector = ({ data, onSubmit }: SiswaSelectorProps) => {
                             <input ref={searchInput} onChange={(e) => setSearchTemp(e.target.value)} value={searchTemp} type="text" placeholder="Cari data" autoComplete="off" className="w-64 py-3 pl-8 pr-4 text-xs transition border border-neutral-200 focus:outline-none rounded-full focus:border-sky-400 focus:ring-2 focus:ring-sky-200" />
                         </div>
                     </div>
-                    <div className="overflow-x-auto border border-neutral-200 rounded-xl">
+                    <div className="relative overflow-x-auto border border-neutral-200 rounded-xl">
                         <AutoHeight>
                             <table className="min-w-full overflow-x-auto divide-y divide-neutral-200">
                                 <thead className="bg-neutral-50 rounded-t-3xl">
@@ -218,7 +218,7 @@ export default function Form({ data, onSubmit, errors }: Props) {
 
             <FormSection title="Siswa" description="Data siswa yang berada pada kelas" disablePadding>
                 <div className="space-y-6">
-                    <div className="overflow-x-auto border border-neutral-200 rounded-xl">
+                    <div className="relative overflow-x-auto border border-neutral-200 rounded-xl">
                         <AutoHeight>
                             <table className="min-w-full overflow-x-auto divide-y divide-neutral-200">
                                 <thead className="bg-neutral-50 rounded-t-3xl">

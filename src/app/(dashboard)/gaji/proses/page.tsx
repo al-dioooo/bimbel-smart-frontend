@@ -111,7 +111,7 @@ export default function ProsesGajiPage() {
                 <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">Gagal memuat data proses gaji.</div>
             )}
 
-            <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
+            <div className="relative overflow-x-auto rounded-xl border border-neutral-200 bg-white">
                 <table className="min-w-full divide-y divide-neutral-200 text-xs">
                     <thead className="bg-neutral-50 text-left uppercase text-neutral-500">
                         <tr>
