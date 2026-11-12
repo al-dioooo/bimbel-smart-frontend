@@ -30,6 +30,18 @@ function Forbidden() {
     )
 }
 
+function LoadError({ onRetry }: { onRetry: () => void }) {
+    return (
+        <div role="alert" className="rounded-xl border border-neutral-200 bg-neutral-50 px-6 py-12 text-center space-y-2">
+            <p className="text-lg font-semibold">Data akun gagal dimuat</p>
+            <p className="text-sm text-neutral-500">Server sedang tidak dapat dihubungi. Periksa koneksi Anda lalu coba lagi.</p>
+            <button type="button" onClick={onRetry} className="inline-block text-sm font-semibold text-sky-500 hover:text-sky-600">
+                Coba lagi
+            </button>
+        </div>
+    )
+}
+
 /**
  * Role gate. The proxy only knows a token exists, so the role check happens
  * here once /me resolves; pages do not mount (or fetch) before that.
@@ -37,12 +49,16 @@ function Forbidden() {
 function RoleGate({ children }: { children: React.ReactNode }) {
     const router = useRouter()
     const pathname = usePathname()
-    const { user, isLoading, isError } = useUser()
+    const { user, isLoading, isError, errorStatus, mutateUser } = useUser()
 
+    // Only an expired or missing session goes back to the login page. Any
+    // other failure (API down, 5xx) keeps the session: redirecting would loop,
+    // because the token is still there and the proxy sends /login back here.
     useEffect(() => {
-        if (isError) router.replace("/login")
-    }, [isError, router])
+        if (isError && errorStatus === 401) router.replace("/login")
+    }, [isError, errorStatus, router])
 
+    if (isError && errorStatus !== 401) return <LoadError onRetry={() => mutateUser()} />
     if (isLoading || !user) return <PageFallback />
     if (!canAccess(user, pathname)) return <Forbidden />
 
