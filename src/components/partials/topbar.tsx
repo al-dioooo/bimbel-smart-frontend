@@ -1,6 +1,7 @@
 'use client'
 
 import { useRouter } from "next/navigation"
+import { toast } from "sonner"
 
 import GlobalSearch from "@/components/global-search"
 import { ProgressiveBlur } from "@/components/progressive-blur"
@@ -12,10 +13,10 @@ export default function Topbar() {
     const router = useRouter()
 
     const handleLogout = async () => {
-        try {
-            await logout()
-        } finally {
+        if (await logout()) {
             router.replace("/login")
+        } else {
+            toast.error("Logout gagal karena server tidak dapat dihubungi. Silakan coba lagi.")
         }
     }
 
