@@ -9,6 +9,7 @@ import DataTable, { type Column } from "@/components/data/data-table"
 import SearchInput from "@/components/data/search-input"
 import FilterModal, { type SelectOption } from "@/components/data/filter-modal"
 import { useListParams } from "@/components/data/use-list-params"
+import DownloadButtons from "@/components/download-buttons"
 
 import { useReportAbsensi } from "@/hooks/repositories/use-report"
 import { useKelas } from "@/hooks/repositories/use-kelas"
@@ -82,25 +83,29 @@ export default function ReportAbsensiPage() {
             />
 
             <div className="space-y-6">
-                <div className="flex flex-wrap items-center gap-2">
-                    <SearchInput value={searchTemp} onChange={setSearchTemp} placeholder="Cari kelas atau mentor" />
-                    <FilterModal
-                        value={activeFilters}
-                        onSubmit={updateFilter}
-                        onRemove={removeFilter}
-                        fields={[
-                            {
-                                type: 'select',
-                                name: 'kelas_id',
-                                label: 'Kelas',
-                                placeholder: 'Semua kelas',
-                                options: kelasSelectOptions,
-                                isLoading: isLoadingKelas,
-                            },
-                            { type: 'date', name: 'from', label: 'Dari Tanggal' },
-                            { type: 'date', name: 'to', label: 'Sampai Tanggal' },
-                        ]}
-                    />
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
+                        <SearchInput value={searchTemp} onChange={setSearchTemp} placeholder="Cari kelas atau mentor" />
+                        <FilterModal
+                            value={activeFilters}
+                            onSubmit={updateFilter}
+                            onRemove={removeFilter}
+                            fields={[
+                                {
+                                    type: 'select',
+                                    name: 'kelas_id',
+                                    label: 'Kelas',
+                                    placeholder: 'Semua kelas',
+                                    options: kelasSelectOptions,
+                                    isLoading: isLoadingKelas,
+                                },
+                                { type: 'date', name: 'from', label: 'Dari Tanggal' },
+                                { type: 'date', name: 'to', label: 'Sampai Tanggal' },
+                            ]}
+                        />
+                    </div>
+                    {/* The tester asked for an export here; it uses the filters on screen. */}
+                    <DownloadButtons endpoint="/report/absensi/export" params={{ search, ...activeFilters, ...scope }} filename="rekap-absensi" />
                 </div>
 
                 <DataTable
