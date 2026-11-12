@@ -19,6 +19,12 @@ import { toneClasses } from "@/lib/status"
 import { cn } from "@/lib/utils"
 
 const thisMonth = () => moment().format('YYYY-MM')
+// The last month that has ended: the only kind the API lets you finalize.
+const lastMonth = () => moment().subtract(1, 'month').format('YYYY-MM')
+const MONTH = /^\d{4}-(0[1-9]|1[0-2])$/
+
+/** A month can be finalized from the first day of the next month on. */
+const hasEnded = (bulan: string) => moment(bulan, 'YYYY-MM', true).isBefore(moment().startOf('month'))
 
 /**
  * UC-10 "Memproses Gaji Bulanan": choose a period (steps 1–3), read the draft
@@ -26,16 +32,21 @@ const thisMonth = () => moment().format('YYYY-MM')
  * shown read-only from the stored report.
  */
 export default function ProsesGajiPage() {
-    const [bulan, setBulan] = useState(thisMonth)
+    const [bulan, setBulan] = useState(lastMonth)
+    // What is typed: browsers without a month picker show a text field, and a
+    // half-typed value must not be sent.
+    const [bulanInput, setBulanInput] = useState(lastMonth)
     const [confirming, setConfirming] = useState(false)
 
     const { data, error, isLoading, mutate } = usePeriodeGaji(bulan)
     const isFinal = data?.status === 'final'
     const belumDiabsen = data?.jadwal_belum_diabsen ?? 0
+    const ended = hasEnded(bulan)
 
     const finalize = async () => {
         try {
-            const response = await api.post('/report/gaji', { bulan, lanjutkan: belumDiabsen > 0 })
+            // `total` is what the admin reviewed; the API refuses if it changed.
+            const response = await api.post('/report/gaji', { bulan, lanjutkan: belumDiabsen > 0, total: data?.total.total })
             toast.success(response.data?.message ?? 'Gaji berhasil difinalisasi')
             await mutate()
             // The laporan gaji now reads this month from the final report.
@@ -43,6 +54,8 @@ export default function ProsesGajiPage() {
         } catch (err: unknown) {
             const body = (err as { response?: { data?: { message?: string } } }).response?.data
             toast.error(body?.message ?? 'Gagal memfinalisasi gaji')
+            // Show the figures as they are now (e.g. after "berubah sejak pratinjau").
+            await mutate()
             throw err
         }
     }
@@ -65,9 +78,15 @@ export default function ProsesGajiPage() {
                     <input
                         id="bulan"
                         type="month"
-                        value={bulan}
+                        value={bulanInput}
                         max={thisMonth()}
-                        onChange={(e) => e.target.value && setBulan(e.target.value)}
+                        placeholder="YYYY-MM"
+                        pattern="\d{4}-(0[1-9]|1[0-2])"
+                        aria-describedby={ended ? undefined : 'bulan-belum-berakhir'}
+                        onChange={(e) => {
+                            setBulanInput(e.target.value)
+                            if (MONTH.test(e.target.value)) setBulan(e.target.value)
+                        }}
                         className="mt-1 rounded-xl border border-neutral-200 p-2 text-sm focus:border-neutral-400 focus:outline-none"
                     />
                 </div>
@@ -82,7 +101,7 @@ export default function ProsesGajiPage() {
                         <PrimaryButton
                             type="button"
                             onClick={() => setConfirming(true)}
-                            disabled={!data || isLoading || data.mentor.length === 0}
+                            disabled={!data || isLoading || data.mentor.length === 0 || !ended}
                             className="text-sm"
                             icon={<Check className="w-4 h-4" strokeWidth={2} />}
                         >
@@ -97,6 +116,13 @@ export default function ProsesGajiPage() {
                     Gaji periode {data.label} sudah difinalisasi
                     {data.finalized_at && <> pada {moment(data.finalized_at).format('D MMMM YYYY HH:mm')}</>}
                     {data.finalized_by && <> oleh {data.finalized_by}</>}. Data periode ini terkunci dan tidak dapat diubah.
+                </div>
+            )}
+
+            {!isFinal && !ended && (
+                <div id="bulan-belum-berakhir" role="status" className="rounded-xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-700">
+                    Periode {data?.label ?? bulan} belum berakhir, sehingga belum dapat difinalisasi. Finalisasi dapat dilakukan mulai{' '}
+                    {moment(bulan, 'YYYY-MM').add(1, 'month').startOf('month').format('D MMMM YYYY')}. Draf di bawah masih dapat berubah.
                 </div>
             )}
 
