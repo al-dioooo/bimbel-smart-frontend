@@ -38,19 +38,33 @@ export function useReportGaji(params: Record<string, unknown>) {
     return { data, error, mutate, isLoading, isValidating }
 }
 
+export type ReportGajiTotal = {
+    gaji_pokok: number
+    bonus: number
+    potongan: number
+    /** What is paid: gaji_pokok + bonus - potongan. */
+    total: number
+}
+
 export type ReportGajiDetail = {
     rows: PaginatedResponse<ReportGajiDetailRow>
     /** REQ-064: the bonus/potongan of the same filter. */
     penyesuaian: PenyesuaianGaji[]
+    /** Sums over every row of the filter, not just this page (same figure as the slip). */
+    total: ReportGajiTotal | null
 }
 
-/** The per-kelas rows plus the adjustments, which sit beside `data` in the response. */
+/** The per-kelas rows plus the adjustments and totals, which sit beside `data` in the response. */
 export function useReportGajiByMentor(mentorId: number | null, params: Record<string, unknown>) {
     const key = mentorId ? ([`/report/gaji/${mentorId}`, params] as const) : null
     const { data, error, mutate, isLoading } = useSWR<ReportGajiDetail>(
         key,
         ([url, p]: readonly [string, Record<string, unknown>]) =>
-            api.get(url, { params: p }).then((r) => ({ rows: r.data.data, penyesuaian: r.data.penyesuaian ?? [] }))
+            api.get(url, { params: p }).then((r) => ({
+                rows: r.data.data,
+                penyesuaian: r.data.penyesuaian ?? [],
+                total: r.data.total ?? null,
+            }))
     )
     return { data, error, mutate, isLoading }
 }
