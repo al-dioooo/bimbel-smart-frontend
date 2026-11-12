@@ -1,9 +1,24 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
-import { apiUrl, clearToken, isCrossOriginWrite, readToken } from '@/lib/server/session'
+import { apiUrl, clearToken, clientIpHeaders, isCrossOriginWrite, readToken } from '@/lib/server/session'
 
-/** Response headers worth passing back to the browser (files, throttling). */
-const PASS_HEADERS = ['content-type', 'content-disposition', 'content-length', 'cache-control', 'retry-after']
+/**
+ * Response headers worth passing back to the browser (files, throttling).
+ * Not content-length or content-encoding: fetch() has already decompressed
+ * the body, so the upstream length would truncate it.
+ */
+const PASS_HEADERS = ['content-type', 'content-disposition', 'cache-control', 'retry-after']
+
+/**
+ * Paths the proxy never forwards: dot segments (no reliance on URL
+ * normalisation), and login, which returns the raw token; logging in goes
+ * through /api/auth/login, which keeps the token in the HttpOnly cookie.
+ */
+function refused(path: string[]): boolean {
+    return path.length === 0
+        || path.some((segment) => segment === '' || segment === '.' || segment === '..')
+        || path[0].toLowerCase() === 'login'
+}
 
 /**
  * Same-origin proxy to the API: `/api/backend/<path>` → `${API_URL}/<path>`
@@ -17,9 +32,12 @@ async function forward(req: NextRequest, { params }: { params: Promise<{ path: s
     }
 
     const { path } = await params
+    if (refused(path)) {
+        return NextResponse.json({ message: 'Alamat tidak ditemukan.' }, { status: 404 })
+    }
     const target = apiUrl(path.map(encodeURIComponent).join('/')) + req.nextUrl.search
 
-    const headers = new Headers({ Accept: req.headers.get('accept') ?? 'application/json' })
+    const headers = new Headers({ Accept: req.headers.get('accept') ?? 'application/json', ...clientIpHeaders(req) })
     const contentType = req.headers.get('content-type')
     if (contentType) headers.set('Content-Type', contentType)
     const token = readToken(req)
