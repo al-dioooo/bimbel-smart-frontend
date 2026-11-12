@@ -1,22 +1,27 @@
 import axios from 'axios'
-import { parseCookies, destroyCookie } from 'nookies'
 
+/** Pages that work without a session; a 401 there is not an expired session. */
+const PUBLIC_PATHS = ['/login', '/lupa-kata-sandi', '/reset-password']
+
+export const isPublicPath = (pathname: string) =>
+    PUBLIC_PATHS.some((path) => pathname === path || pathname.startsWith(`${path}/`))
+
+/**
+ * Every API call goes through the same-origin route handler at
+ * /api/backend, which adds the token from the HttpOnly cookie (N2). Browser
+ * code never sees the token.
+ */
 const api = axios.create({
-    baseURL: process.env.API_URL,
-})
-
-api.interceptors.request.use(config => {
-    const { bimbel_smart_auth_token } = parseCookies()
-    if (bimbel_smart_auth_token) config.headers.Authorization = `Bearer ${bimbel_smart_auth_token}`
-    return config
+    baseURL: '/api/backend',
 })
 
 api.interceptors.response.use(
     res => res,
     err => {
-        if (err.response?.status === 401) {
-            destroyCookie(null, 'bimbel_smart_auth_token')
-            // if (typeof window !== 'undefined') window.location.href = '/login'
+        // REQ-016/REQ-017: the API rejects a token after logout or 30 idle
+        // minutes; the route handler has already dropped the cookie.
+        if (err.response?.status === 401 && typeof window !== 'undefined' && !isPublicPath(window.location.pathname)) {
+            window.location.replace('/login?sesi=berakhir')
         }
         return Promise.reject(err)
     },

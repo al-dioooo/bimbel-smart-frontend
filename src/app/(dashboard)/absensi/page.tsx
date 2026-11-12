@@ -1,15 +1,19 @@
 'use client'
 
 import { useMemo, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import moment from "moment"
+import Link from "next/link"
 import { toast } from "sonner"
+import { mutate } from "swr"
 
 import PageHeader from "@/components/ui/page-header"
 import PrimaryButton from "@/components/buttons/primary"
 import OutlineButton from "@/components/buttons/outline"
 import SelectDescription from "@/components/forms/select-description"
 import SearchInput from "@/components/data/search-input"
-import AbsensiTable, { type AttendanceDraft } from "@/components/absensi-table"
+import AbsensiTable, { type AttendanceDraft, type AttendanceNotes } from "@/components/absensi-table"
+import AbsensiEditDialog, { type EditTarget } from "@/components/absensi-edit-dialog"
 import { useListParams } from "@/components/data/use-list-params"
 import { Check, ArrowNarrowRight } from "@/components/icons/outline"
 
@@ -25,17 +29,40 @@ export default function ListAbsensiPage() {
     // Mentors only fill attendance for the kelas they teach.
     const { data: kelasList, isLoading: isLoadingKelas } = useKelas({ paginate: false, ...scope })
 
-    const [selectedKelas, setSelectedKelas] = useState<number | null>(null)
+    // The dashboard's reminders link here with ?kelas_id= to open that class.
+    const searchParams = useSearchParams()
+    const [selectedKelas, setSelectedKelas] = useState<number | null>(() => {
+        const fromLink = Number(searchParams.get('kelas_id'))
+        return Number.isInteger(fromLink) && fromLink > 0 ? fromLink : null
+    })
     const [draft, setDraft] = useState<AttendanceDraft>({})
+    const [notes, setNotes] = useState<AttendanceNotes>({})
     const [isSaving, setIsSaving] = useState(false)
+    const [editing, setEditing] = useState<EditTarget | null>(null)
 
-    // Default to the current month, matching the dashboard's window.
+    // Revalidates every absensi list on screen after a save or a correction.
+    const refreshAbsensi = () => mutate((key) => Array.isArray(key) && key[0] === '/absensi')
+
+    // ?bulan=YYYY-MM (the dashboard's reminders link to a session's month);
+    // otherwise the current month, matching the dashboard's window.
+    const bulanParam = searchParams.get('bulan')
+    const bulan = bulanParam && moment(bulanParam, 'YYYY-MM', true).isValid() ? bulanParam : moment().format('YYYY-MM')
+    const isThisMonth = bulan === moment().format('YYYY-MM')
+    // A draft belongs to the month it was typed in: switching month drops it,
+    // so jadwal of a month no longer on screen are never sent.
+    const [draftBulan, setDraftBulan] = useState(bulan)
+    if (draftBulan !== bulan) {
+        setDraftBulan(bulan)
+        setDraft({})
+        setNotes({})
+    }
+
     const range = useMemo(
         () => ({
-            from: moment().startOf('month').format('YYYY-MM-DD'),
-            to: moment().endOf('month').format('YYYY-MM-DD'),
+            from: moment(bulan, 'YYYY-MM').startOf('month').format('YYYY-MM-DD'),
+            to: moment(bulan, 'YYYY-MM').endOf('month').format('YYYY-MM-DD'),
         }),
-        []
+        [bulan]
     )
 
     const pendingCount = Object.values(draft).reduce(
@@ -43,35 +70,56 @@ export default function ListAbsensiPage() {
         0
     )
 
-    /** Was `console.log("Simpan data...")`. */
+    /**
+     * Sends the new entries only, one request per jadwal. A jadwal the API
+     * refuses keeps its entries in the draft; the others are cleared.
+     */
     const handleSave = async () => {
         if (!selectedKelas) {
             toast.error('Pilih kelas terlebih dahulu')
             return
         }
 
-        // One request per jadwal column that has at least one filled cell.
         const payloads = Object.entries(draft)
             .map(([jadwalId, column]) => ({
                 jadwal_id: Number(jadwalId),
                 absensi: Object.entries(column)
                     .filter(([, status]) => !!status)
-                    .map(([siswaId, status]) => ({ siswa_id: Number(siswaId), status: status as string })),
+                    .map(([siswaId, status]) => ({
+                        siswa_id: Number(siswaId),
+                        status: status as string,
+                        // REQ-044: sent only when filled.
+                        ...(notes[Number(jadwalId)]?.[Number(siswaId)]?.trim() ? { catatan: notes[Number(jadwalId)][Number(siswaId)].trim() } : {}),
+                    })),
             }))
             .filter((payload) => payload.absensi.length > 0)
 
         if (payloads.length === 0) {
-            toast.error('Belum ada absensi yang diisi')
+            toast.error('Belum ada absensi baru yang diisi')
             return
         }
 
         setIsSaving(true)
         try {
-            await Promise.all(payloads.map((payload) => api.post('/absensi', payload)))
-            toast.success(`Absensi tersimpan (${pendingCount} entri)`)
-        } catch (error: unknown) {
-            const message = (error as { response?: { data?: { message?: string } } })?.response?.data?.message
-            toast.error(message || 'Gagal menyimpan absensi')
+            const results = await Promise.allSettled(payloads.map((payload) => api.post('/absensi', payload)))
+            const failed = results
+                .map((result, index) => ({ result, payload: payloads[index] }))
+                .filter(({ result }) => result.status === 'rejected')
+
+            const saved = payloads.length - failed.length
+            if (saved > 0) toast.success(`Absensi berhasil disimpan (${saved} jadwal)`)
+
+            failed.forEach(({ result }) => {
+                const reason = (result as PromiseRejectedResult).reason as { response?: { data?: { message?: string } } }
+                toast.error(reason?.response?.data?.message || 'Gagal menyimpan absensi')
+            })
+
+            const keep = new Set(failed.map(({ payload }) => payload.jadwal_id))
+            const onlyFailed = <T,>(current: Record<number, T>) =>
+                Object.fromEntries(Object.entries(current).filter(([jadwalId]) => keep.has(Number(jadwalId))))
+            setDraft(onlyFailed)
+            setNotes(onlyFailed)
+            await refreshAbsensi()
         } finally {
             setIsSaving(false)
         }
@@ -83,7 +131,16 @@ export default function ListAbsensiPage() {
         <div className="w-full space-y-6 pb-20">
             <PageHeader
                 title="Absensi"
-                description={`Periode ${moment(range.from).format('D MMM')} – ${moment(range.to).format('D MMM YYYY')}`}
+                description={
+                    <>
+                        Periode {moment(range.from).format('D MMM')} – {moment(range.to).format('D MMM YYYY')}
+                        {!isThisMonth && (
+                            <Link href={selectedKelas ? `/absensi?kelas_id=${selectedKelas}` : '/absensi'} className="ml-2 font-semibold text-sky-500 hover:text-sky-600">
+                                Kembali ke bulan ini
+                            </Link>
+                        )}
+                    </>
+                }
                 action={
                     <OutlineButton
                         as="link"
@@ -116,6 +173,7 @@ export default function ListAbsensiPage() {
                                     // The selected class was previously tracked but never used.
                                     setSelectedKelas(value ? Number(value) : null)
                                     setDraft({})
+                                    setNotes({})
                                 }}
                             />
                         </div>
@@ -125,11 +183,11 @@ export default function ListAbsensiPage() {
                         type="button"
                         onClick={handleSave}
                         isLoading={isSaving}
-                        disabled={isSaving || !selectedKelas}
+                        disabled={isSaving || !selectedKelas || pendingCount === 0}
                         className="text-sm"
                         icon={<Check className="w-4 h-4" strokeWidth={2} />}
                     >
-                        Simpan
+                        {pendingCount > 0 ? `Simpan (${pendingCount})` : 'Simpan'}
                     </PrimaryButton>
                 </div>
 
@@ -140,9 +198,23 @@ export default function ListAbsensiPage() {
                     to={range.to}
                     draft={draft}
                     onDraftChange={setDraft}
+                    notes={notes}
+                    onNotesChange={setNotes}
                     lockFuture={!isAdmin}
+                    onEditRecorded={isAdmin ? (record, jadwal, siswa) => setEditing({ record, jadwal, siswa }) : undefined}
                 />
+
+                <p className="text-xs text-neutral-500">
+                    <span className="mr-1 inline-flex min-w-6 justify-center rounded-md border border-sky-200 bg-sky-100 px-1 font-semibold text-sky-600">H</span>
+                    sudah tercatat{isAdmin ? ' (klik untuk mengubah)' : '; perubahan dilakukan oleh admin'}.
+                    <span className="ml-3 mr-1 font-semibold text-sky-600 underline decoration-dotted underline-offset-4">H</span>
+                    belum disimpan.
+                    <span className="ml-3 mr-1 inline-block h-2 w-2 rounded-full bg-amber-400" />
+                    ada catatan.
+                </p>
             </div>
+
+            <AbsensiEditDialog target={editing} onClose={() => setEditing(null)} onSaved={refreshAbsensi} />
         </div>
     )
 }

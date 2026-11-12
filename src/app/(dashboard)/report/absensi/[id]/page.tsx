@@ -11,6 +11,7 @@ import { ArrowNarrowLeft } from "@/components/icons/outline"
 import DataTable, { type Column } from "@/components/data/data-table"
 import SearchInput from "@/components/data/search-input"
 import { useListParams } from "@/components/data/use-list-params"
+import DownloadButtons from "@/components/download-buttons"
 
 import { useReportAbsensiByKelas } from "@/hooks/repositories/use-report"
 import { useAccess } from "@/hooks/use-user"
@@ -110,7 +111,14 @@ export default function ReportAbsensiDetailPage({ params }: { params: Promise<{ 
             </div>
 
             <div className="space-y-6">
-                <SearchInput value={searchTemp} onChange={setSearchTemp} placeholder="Cari siswa" />
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                    <SearchInput value={searchTemp} onChange={setSearchTemp} placeholder="Cari siswa" />
+                    <DownloadButtons
+                        endpoint={`/report/absensi/${id}`}
+                        params={{ ...scope, search }}
+                        filename={`rekap-absensi-${kelas?.nama ?? id}`}
+                    />
+                </div>
 
                 <DataTable
                     columns={columns}

@@ -135,14 +135,68 @@ export interface ReportAbsensiDetail {
     rekap: PaginatedResponse<ReportAbsensiSiswaRow>
 }
 
-/** Derived on read by ReportGajiController. */
+/** Derived on read by ReportGajiController; a finalized month comes from its snapshot. */
 export interface ReportGajiRow {
     mentor_id: number
     mentor: string
     tahun: number
     bulan: number
     total_kehadiran_murid: number
+    gaji_pokok: number
+    bonus: number
+    potongan: number
+    /** gaji_pokok + bonus - potongan */
     nominal: number
+    status: 'draft' | 'final'
+}
+
+export type JenisPenyesuaian = 'bonus' | 'potongan'
+
+/** REQ-064: a manual bonus or potongan for one mentor and month. */
+export interface PenyesuaianGaji {
+    id: number
+    mentor_id: number
+    mentor?: Mentor
+    /** First day of the month, YYYY-MM-DD. */
+    periode: string
+    /** YYYY-MM */
+    bulan: string
+    jenis: JenisPenyesuaian
+    nominal: number
+    keterangan: string | null
+}
+
+/** One mentor in the UC-10 preview of a month. */
+export interface PeriodeGajiMentor {
+    mentor_id: number | null
+    mentor: string
+    total_kehadiran: number
+    gaji_pokok: number
+    bonus: number
+    potongan: number
+    total: number
+    rincian: { kelas_id: number; kelas: string; tarif: number; jumlah_kehadiran: number; nominal: number }[]
+    penyesuaian: { id: number; jenis: JenisPenyesuaian; nominal: number; keterangan: string | null }[]
+}
+
+/** GET /report/gaji/periode/{YYYY-MM} (UC-10). */
+export interface PeriodeGaji {
+    bulan: string
+    label: string
+    status: 'draft' | 'final'
+    finalized_at: string | null
+    finalized_by: string | null
+    mentor: PeriodeGajiMentor[]
+    total: {
+        jumlah_mentor: number
+        total_kehadiran: number
+        gaji_pokok: number
+        bonus: number
+        potongan: number
+        total: number
+    }
+    /** UC-10 3a: past sessions of the month without absensi. */
+    jadwal_belum_diabsen: number
 }
 
 export interface ReportGajiDetailRow {
@@ -154,11 +208,34 @@ export interface ReportGajiDetailRow {
     tarif: number
     jumlah_kehadiran: number
     nominal: number
+    status: 'draft' | 'final'
+}
+
+/** A session in the mentor's dashboard reminders (UC-16). */
+export interface SesiPengingat {
+    jadwal_id: number
+    kelas_id: number
+    kelas: string
+    tanggal: string
+    waktu_mulai: string
+    waktu_selesai: string
+    materi: string | null
+    /** REQ-071: some students are recorded, not all (only in absensi_belum_diisi). */
+    belum_lengkap?: boolean
 }
 
 export interface DashboardStats {
     periode: { from: string; to: string }
+    /** REQ-067; admins only. */
+    total_mentor?: number
+    /** All kelas for admins, the mentor's own kelas for mentors. */
+    total_kelas: number
     total_siswa: number
+    /** UC-16 2b (mentors only): past sessions without absensi, newest ten. */
+    absensi_belum_diisi?: SesiPengingat[]
+    jumlah_absensi_belum_diisi?: number
+    /** UC-16 2a (mentors only): today's sessions. */
+    jadwal_hari_ini?: (SesiPengingat & { sudah_diabsen: boolean })[]
     total_kehadiran: number
     penghasilan: number
     persentase_kehadiran: number
@@ -179,6 +256,8 @@ export interface Absensi {
     siswa?: Siswa
     tanggal: string
     status: string
+    /** REQ-044: optional note per siswa. */
+    catatan?: string | null
     is_open: boolean
     created_at: string
     updated_at: string

@@ -1,8 +1,9 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { Suspense, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
+import Link from "next/link"
 
 import Input from "@/components/forms/input"
 import Label from "@/components/forms/label"
@@ -21,9 +22,22 @@ function toMessages(error: unknown): string[] {
     if (response.status === 422 && response.data?.errors) {
         return Object.values(response.data.errors).flat()
     }
-    if (response.status === 401) return ["Username/email atau password salah."]
+    // UC-01 4a / REQ-007.
+    if (response.status === 401) return [response.data?.message ?? "Username atau password salah."]
     if (response.status === 403) return [response.data?.message ?? "Akun Anda tidak memiliki akses."]
     return [response.data?.message ?? "Terjadi kesalahan. Silakan coba lagi."]
+}
+
+/** Shown after the API ended the session (logout elsewhere, or 30 idle minutes). */
+function SessionNotice() {
+    const params = useSearchParams()
+    if (params.get("sesi") !== "berakhir") return null
+
+    return (
+        <div role="status" className="w-full bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-3 rounded-xl mb-4">
+            Sesi Anda telah berakhir. Silakan login kembali.
+        </div>
+    )
 }
 
 export default function LoginPage() {
@@ -37,12 +51,9 @@ export default function LoginPage() {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        const nextErrors: string[] = []
-        if (!username.trim()) nextErrors.push("Username/email tidak boleh kosong")
-        if (!password.trim()) nextErrors.push("Password tidak boleh kosong")
-
-        if (nextErrors.length > 0) {
-            setErrors(nextErrors)
+        // UC-01 3a.
+        if (!username.trim() || !password.trim()) {
+            setErrors(["Username dan password tidak boleh kosong."])
             return
         }
 
@@ -80,6 +91,10 @@ export default function LoginPage() {
                         Silakan masuk untuk melanjutkan
                     </p>
 
+                    <Suspense fallback={null}>
+                        <SessionNotice />
+                    </Suspense>
+
                     {errors.length > 0 && (
                         <div role="alert" className="w-full bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl mb-4">
                             <p className="font-semibold">Login gagal</p>
@@ -115,6 +130,13 @@ export default function LoginPage() {
                                 error={errors.length > 0}
                                 disabled={isLoading}
                             />
+                        </div>
+
+                        {/* REQ-012: "Lupa Kata Sandi" on the login page. */}
+                        <div className="text-right">
+                            <Link href="/lupa-kata-sandi" className="text-xs font-semibold text-sky-500 hover:text-sky-600">
+                                Lupa kata sandi?
+                            </Link>
                         </div>
 
                         <div className="pt-3">

@@ -93,7 +93,7 @@ export default function ListJadwalPage() {
 
     return (
         <div className="space-y-6">
-            <PageHeader title="List Jadwal" />
+            <PageHeader title="Daftar Jadwal" />
 
             <div className="space-y-6">
                 <div className="flex flex-wrap items-center justify-between gap-2">

@@ -4,7 +4,7 @@ import PageHeader from "@/components/ui/page-header"
 import OutlineButton from "@/components/buttons/outline"
 import MenuAction from "@/components/menu-action"
 import Pagination from "@/components/pagination"
-import { ArrowNarrowLeft } from "@/components/icons/outline"
+import { ArrowNarrowLeft, CircleDashedPlus } from "@/components/icons/outline"
 
 import DataTable, { type Column } from "@/components/data/data-table"
 import SearchInput from "@/components/data/search-input"
@@ -81,15 +81,21 @@ export default function ListAturanGajiPage() {
                     debounce wrote ?search= for an input that did not exist. */}
                 <div className="flex flex-wrap items-center justify-between gap-2">
                     <SearchInput value={searchTemp} onChange={setSearchTemp} placeholder="Cari kelas" />
-                    <OutlineButton
-                        as="link"
-                        href="/report/gaji"
-                        buttonType="secondary"
-                        className="text-xs"
-                        icon={<ArrowNarrowLeft className="w-5 h-5" />}
-                    >
-                        Kembali ke Report Gaji
-                    </OutlineButton>
+                    <div className="flex flex-wrap items-center gap-2">
+                        <OutlineButton
+                            as="link"
+                            href="/report/gaji"
+                            buttonType="secondary"
+                            className="text-xs"
+                            icon={<ArrowNarrowLeft className="w-5 h-5" />}
+                        >
+                            Kembali ke Laporan Gaji
+                        </OutlineButton>
+                        {/* UC-11: the API always supported creating a rule; the page had no way in. */}
+                        <OutlineButton as="link" href="/aturan-gaji/create" className="text-xs" icon={<CircleDashedPlus className="w-5 h-5" />}>
+                            Tambah Aturan
+                        </OutlineButton>
+                    </div>
                 </div>
 
                 <DataTable

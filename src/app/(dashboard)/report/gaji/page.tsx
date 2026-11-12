@@ -11,7 +11,10 @@ import FilterModal from "@/components/data/filter-modal"
 import { useListParams } from "@/components/data/use-list-params"
 
 import { useReportGaji } from "@/hooks/repositories/use-report"
+import DownloadButtons from "@/components/download-buttons"
 import { formatCurrency, formatNumber, monthLabel } from "@/lib/format"
+import { toneClasses } from "@/lib/status"
+import { cn } from "@/lib/utils"
 import type { ReportGajiRow } from "@/lib/types"
 
 const FILTER_KEYS = ['from', 'to']
@@ -38,16 +41,28 @@ export default function ReportGajiPage() {
         { key: 'bulan', header: 'Bulan', sortKey: 'bulan', render: (row) => monthLabel(row.bulan, row.tahun) },
         {
             key: 'kehadiran',
-            header: 'Total Kehadiran Murid',
+            header: 'Kehadiran Murid',
             sortKey: 'total_kehadiran_murid',
             render: (row) => formatNumber(row.total_kehadiran_murid),
         },
+        { key: 'pokok', header: 'Gaji Pokok', render: (row) => formatCurrency(row.gaji_pokok) },
+        { key: 'bonus', header: 'Bonus', cellClassName: 'text-emerald-600', render: (row) => formatCurrency(row.bonus) },
+        { key: 'potongan', header: 'Potongan', cellClassName: 'text-red-600', render: (row) => formatCurrency(row.potongan) },
         {
             key: 'nominal',
-            header: 'Nominal',
+            header: 'Total',
             sortKey: 'nominal',
             cellClassName: 'font-medium text-emerald-600',
             render: (row) => formatCurrency(row.nominal),
+        },
+        {
+            key: 'status',
+            header: 'Status',
+            render: (row) => (
+                <span className={cn('rounded-full border px-2 py-0.5 font-semibold', row.status === 'final' ? toneClasses.success : toneClasses.warning)}>
+                    {row.status === 'final' ? 'Final' : 'Draf'}
+                </span>
+            ),
         },
         {
             key: 'actions',
@@ -57,7 +72,7 @@ export default function ReportGajiPage() {
             render: (row) => (
                 <OutlineButton
                     as="link"
-                    href={`/report/gaji/${row.mentor_id}`}
+                    href={`/report/gaji/${row.mentor_id}?bulan=${row.tahun}-${String(row.bulan).padStart(2, '0')}`}
                     className="text-xs"
                     icon={<InfoCircle className="w-4 h-4" />}
                 >
@@ -70,8 +85,8 @@ export default function ReportGajiPage() {
     return (
         <div className="space-y-6">
             <PageHeader
-                title="Konversi Gaji Mentor"
-                description="Gaji dihitung dari tarif kelas dikali jumlah kehadiran siswa."
+                title="Laporan Gaji Mentor"
+                description="Gaji pokok dihitung dari tarif kelas dikali jumlah kehadiran siswa, ditambah bonus dan dikurangi potongan."
             />
 
             <div className="space-y-6">
@@ -88,9 +103,13 @@ export default function ReportGajiPage() {
                             ]}
                         />
                     </div>
-                    <OutlineButton as="link" href="/aturan-gaji" className="text-xs" icon={<Pencil className="w-4 h-4" />}>
-                        Aturan Gaji
-                    </OutlineButton>
+                    <div className="flex flex-wrap items-center gap-2">
+                        {/* The same filters as the table. */}
+                        <DownloadButtons endpoint="/report/gaji/export" params={{ search, ...activeFilters }} filename="laporan-gaji" />
+                        <OutlineButton as="link" href="/gaji/proses" className="text-xs" icon={<Pencil className="w-4 h-4" />}>
+                            Proses Gaji
+                        </OutlineButton>
+                    </div>
                 </div>
 
                 <DataTable

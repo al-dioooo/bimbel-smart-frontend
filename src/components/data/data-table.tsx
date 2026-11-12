@@ -82,7 +82,9 @@ export default function DataTable<T>({
     const hasRows = !!rows && rows.length > 0
 
     return (
-        <div className="overflow-x-auto border border-neutral-200 rounded-xl bg-white">
+        // relative: absolutely positioned bits inside cells (sr-only labels)
+        // would otherwise escape the scroll box and widen the page on phones.
+        <div className="relative overflow-x-auto border border-neutral-200 rounded-xl bg-white">
             <AutoHeight>
                 <table className="min-w-full divide-y divide-neutral-200">
                     <thead className="bg-neutral-50">

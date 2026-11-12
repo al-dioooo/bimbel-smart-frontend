@@ -1,19 +1,26 @@
 'use client'
 
-import { useEffect, useMemo, useRef } from 'react'
+import { useEffect, useMemo } from 'react'
 import moment from 'moment'
+import { toast } from 'sonner'
 
 import AbsensiAction from '@/components/absensi-action'
 import { ChevronDown, Check } from '@/components/icons/outline'
 import { useJadwal } from '@/hooks/repositories/use-jadwal'
 import { useSiswa } from '@/hooks/repositories/use-siswa'
 import { useAbsensi } from '@/hooks/repositories/use-absensi'
-import { attendance, normalizeAttendance, type AttendanceCode } from '@/lib/status'
+import { attendance, normalizeAttendance, toneClasses, type AttendanceCode } from '@/lib/status'
 import { cn } from '@/lib/utils'
 import type { Jadwal, Siswa, Absensi } from '@/lib/types'
 
-/** `{ [jadwalId]: { [siswaId]: code } }` */
+/**
+ * New, unsaved entries only: `{ [jadwalId]: { [siswaId]: code } }`. Recorded
+ * attendance is never re-sent; the API refuses it as input ganda (UC-08 2a).
+ */
 export type AttendanceDraft = Record<number, Record<number, AttendanceCode | null>>
+
+/** Notes for the new entries, same keys as the draft (REQ-044). */
+export type AttendanceNotes = Record<number, Record<number, string>>
 
 type Props = {
     kelasId?: number | null
@@ -22,8 +29,12 @@ type Props = {
     to?: string
     draft: AttendanceDraft
     onDraftChange: (next: AttendanceDraft) => void
+    notes: AttendanceNotes
+    onNotesChange: (next: AttendanceNotes) => void
     /** Read-only columns for jadwal after today (mentors; the API refuses them). */
     lockFuture?: boolean
+    /** Admins correct a recorded cell (UC-09); mentors only read it. */
+    onEditRecorded?: (record: Absensi, jadwal: Jadwal, siswa: Siswa) => void
 }
 
 export default function AbsensiTable({
@@ -33,7 +44,10 @@ export default function AbsensiTable({
     to,
     draft,
     onDraftChange,
+    notes,
+    onNotesChange,
     lockFuture = false,
+    onEditRecorded,
 }: Props) {
     const hasKelas = !!kelasId
     const isLocked = (jadwal: Jadwal) =>
@@ -61,27 +75,36 @@ export default function AbsensiTable({
         [siswaData]
     )
 
-    // Seed the draft from what is already saved, once per fetch. The guard is
-    // bookkeeping that never affects the render, so it lives in a ref — as state
-    // it made this effect set state that only fed the effect's own condition.
-    const seededKeyRef = useRef<string | null>(null)
-    useEffect(() => {
-        if (!hasKelas || isLoadingAbsensi) return
-        const key = `${kelasId}:${from ?? ''}:${to ?? ''}:${(absensiData ?? []).length}`
-        if (seededKeyRef.current === key) return
-
-        const next: AttendanceDraft = {}
+    // What is already recorded, by jadwal and siswa. It is shown, never
+    // re-sent: the API refuses a second record for the same siswa (UC-08).
+    const recorded = useMemo(() => {
+        const map: Record<number, Record<number, Absensi>> = {}
         ;((absensiData as Absensi[] | undefined) ?? []).forEach((row) => {
-            next[row.jadwal_id] = {
-                ...(next[row.jadwal_id] ?? {}),
-                [row.siswa_id]: normalizeAttendance(row.status),
-            }
+            map[row.jadwal_id] = { ...(map[row.jadwal_id] ?? {}), [row.siswa_id]: row }
         })
+        return map
+    }, [absensiData])
 
-        seededKeyRef.current = key
-        onDraftChange(next)
-        // eslint-disable-next-line react-hooks/exhaustive-deps
-    }, [absensiData, isLoadingAbsensi, hasKelas, kelasId, from, to])
+    // Someone else may record a siswa that is still in this draft. Sending it
+    // would make the API refuse the whole jadwal (input ganda) on every retry,
+    // so a cell that is now recorded leaves the draft.
+    useEffect(() => {
+        let dropped = 0
+        const next: AttendanceDraft = {}
+        Object.entries(draft).forEach(([jadwalId, column]) => {
+            next[Number(jadwalId)] = Object.fromEntries(
+                Object.entries(column).filter(([siswaId, status]) => {
+                    const stale = !!recorded[Number(jadwalId)]?.[Number(siswaId)]
+                    if (stale && status) dropped += 1
+                    return !stale
+                })
+            )
+        })
+        if (dropped > 0) {
+            onDraftChange(next)
+            toast.info(`${dropped} isian dihapus dari draf karena absensinya sudah tercatat.`)
+        }
+    }, [recorded, draft, onDraftChange])
 
     const filtered = useMemo(() => {
         const query = searchQuery.trim().toLowerCase()
@@ -96,15 +119,26 @@ export default function AbsensiTable({
         })
     }
 
-    /** Header checkbox marks the whole column hadir (or clears it). */
+    const setNote = (jadwalId: number, siswaId: number, note: string) => {
+        onNotesChange({
+            ...notes,
+            [jadwalId]: { ...(notes[jadwalId] ?? {}), [siswaId]: note },
+        })
+    }
+
+    /** Students of a column that have no record yet, i.e. the editable cells. */
+    const openStudents = (jadwalId: number) => students.filter((s) => !recorded[jadwalId]?.[s.id])
+
+    /** Header checkbox marks the open cells of a column hadir (UC-07), or clears them. */
     const toggleColumn = (jadwalId: number) => {
         const column = draft[jadwalId] ?? {}
-        const allPresent = students.length > 0 && students.every((s) => column[s.id] === 'h')
+        const open = openStudents(jadwalId)
+        const allPresent = open.length > 0 && open.every((s) => column[s.id] === 'h')
 
         onDraftChange({
             ...draft,
             [jadwalId]: Object.fromEntries(
-                students.map((s) => [s.id, allPresent ? null : ('h' as AttendanceCode)])
+                open.map((s) => [s.id, allPresent ? null : ('h' as AttendanceCode)])
             ),
         })
     }
@@ -135,7 +169,9 @@ export default function AbsensiTable({
                                 </th>
                                 {columns.map((jadwal) => {
                                     const column = draft[jadwal.id] ?? {}
-                                    const allPresent = students.length > 0 && students.every((s) => column[s.id] === 'h')
+                                    const open = openStudents(jadwal.id)
+                                    const allPresent = open.length > 0 && open.every((s) => column[s.id] === 'h')
+                                    const headerLocked = isLocked(jadwal) || open.length === 0
 
                                     return (
                                         <th key={jadwal.id} scope="col" className="min-w-[90px] px-2 py-3 border-b border-neutral-200 bg-neutral-50">
@@ -145,8 +181,8 @@ export default function AbsensiTable({
                                                 </span>
                                                 <button
                                                     type="button"
-                                                    disabled={isLocked(jadwal)}
-                                                    title={isLocked(jadwal) ? 'Belum bisa diisi' : undefined}
+                                                    disabled={headerLocked}
+                                                    title={isLocked(jadwal) ? 'Belum bisa diisi' : open.length === 0 ? 'Semua siswa sudah tercatat' : undefined}
                                                     onClick={() => toggleColumn(jadwal.id)}
                                                     aria-label={`Tandai semua hadir ${moment(jadwal.tanggal as unknown as string).format('D MMMM')}`}
                                                     className={cn(
@@ -154,7 +190,7 @@ export default function AbsensiTable({
                                                         allPresent
                                                             ? 'bg-sky-500 border-sky-500 text-white'
                                                             : 'bg-white border-neutral-300 hover:border-sky-400',
-                                                        isLocked(jadwal) && 'cursor-not-allowed opacity-40 hover:border-neutral-300'
+                                                        headerLocked && 'cursor-not-allowed opacity-40 hover:border-neutral-300'
                                                     )}
                                                 >
                                                     {allPresent && <Check className="w-3 h-3" strokeWidth={3} />}
@@ -198,7 +234,45 @@ export default function AbsensiTable({
                                         </td>
 
                                         {columns.map((jadwal) => {
+                                            const saved = recorded[jadwal.id]?.[student.id]
                                             const code = draft[jadwal.id]?.[student.id] ?? null
+
+                                            if (saved) {
+                                                const savedCode = normalizeAttendance(saved.status)
+                                                const label = savedCode ? attendance[savedCode].label : saved.status
+                                                const catatan = saved.catatan ? ` Catatan: ${saved.catatan}` : ''
+                                                const badge = (
+                                                    <span
+                                                        className={cn(
+                                                            'relative inline-flex min-w-7 items-center justify-center rounded-md border px-1.5 py-0.5 text-xs font-semibold',
+                                                            savedCode ? toneClasses[attendance[savedCode].tone] : toneClasses.neutral
+                                                        )}
+                                                    >
+                                                        {savedCode ? attendance[savedCode].short : '?'}
+                                                        {saved.catatan && (
+                                                            <span aria-hidden className="absolute -right-1 -top-1 h-2 w-2 rounded-full bg-amber-400 ring-2 ring-white" />
+                                                        )}
+                                                    </span>
+                                                )
+
+                                                return (
+                                                    <td key={jadwal.id} className="px-2 py-3 text-center">
+                                                        {onEditRecorded ? (
+                                                            <button
+                                                                type="button"
+                                                                onClick={() => onEditRecorded(saved, jadwal, student)}
+                                                                title={`${label}, sudah tercatat.${catatan} Klik untuk mengubah.`}
+                                                                aria-label={`Ubah absensi ${student.nama} ${moment(jadwal.tanggal as unknown as string).format('D MMMM')}`}
+                                                                className="cursor-pointer rounded-md hover:ring-2 hover:ring-sky-200"
+                                                            >
+                                                                {badge}
+                                                            </button>
+                                                        ) : (
+                                                            <span title={`${label}, sudah tercatat.${catatan} Perubahan dilakukan oleh admin.`}>{badge}</span>
+                                                        )}
+                                                    </td>
+                                                )
+                                            }
 
                                             if (isLocked(jadwal)) {
                                                 return (
@@ -210,17 +284,24 @@ export default function AbsensiTable({
 
                                             return (
                                                 <td key={jadwal.id} className="px-2 py-3 text-center">
-                                                    <AbsensiAction onSelect={(status) => setCell(jadwal.id, student.id, status)}>
+                                                    <AbsensiAction
+                                                        onSelect={(status) => setCell(jadwal.id, student.id, status)}
+                                                        note={notes[jadwal.id]?.[student.id]}
+                                                        onNoteChange={(note) => setNote(jadwal.id, student.id, note)}
+                                                    >
                                                         <div className="inline-flex items-center justify-center gap-1 cursor-pointer w-full py-1">
                                                             <span
                                                                 className={cn(
                                                                     'text-sm font-semibold',
-                                                                    code ? 'text-neutral-800' : 'text-neutral-300'
+                                                                    code ? 'text-sky-600 underline decoration-dotted underline-offset-4' : 'text-neutral-300'
                                                                 )}
-                                                                title={code ? attendance[code].label : 'Belum diisi'}
+                                                                title={code ? `${attendance[code].label}, belum disimpan${notes[jadwal.id]?.[student.id] ? `. Catatan: ${notes[jadwal.id][student.id]}` : ''}` : 'Belum diisi'}
                                                             >
                                                                 {code ? attendance[code].short : '–'}
                                                             </span>
+                                                            {code && notes[jadwal.id]?.[student.id] && (
+                                                                <span aria-label="ada catatan" className="h-1.5 w-1.5 rounded-full bg-amber-400" />
+                                                            )}
                                                             <ChevronDown className="w-3 h-3 text-neutral-400" />
                                                         </div>
                                                     </AbsensiAction>
