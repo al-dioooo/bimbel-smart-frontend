@@ -10,7 +10,7 @@ import BarChart from "@/components/barChart"
 import MiniCalendar from "@/components/miniCalendar"
 import PengajuanDashboard from "@/components/pengajuanDashboard"
 import JadwalDashboard from "@/components/jadwalDashboard"
-import { School, Users, Wallet } from "@/components/icons/outline"
+import { Book, School, User, Users, Wallet } from "@/components/icons/outline"
 
 import { useDashboardStats } from "@/hooks/repositories/use-dashboard"
 import { useAccess } from "@/hooks/use-user"
@@ -18,7 +18,7 @@ import { formatCurrency, formatNumber } from "@/lib/format"
 
 export default function Dashboard() {
     const [selectedDate, setSelectedDate] = useState(new Date())
-    const { scope } = useAccess()
+    const { scope, isAdmin } = useAccess()
 
     // Every figure on this page used to be a literal: "9", "16", "480.000".
     const { data: stats, isLoading, error } = useDashboardStats(scope)
@@ -39,11 +39,28 @@ export default function Dashboard() {
 
             <div className="flex flex-col gap-4 xl:flex-row xl:items-stretch">
                 <div className="space-y-4 w-full xl:w-8/12 flex flex-col">
-                    <div className="grid gap-4 sm:grid-cols-3">
+                    {/* REQ-067: the admin sees the totals of Guru/Mentor, Siswa and Kelas. */}
+                    <div className="grid gap-4 sm:grid-cols-2 2xl:grid-cols-3">
+                        {isAdmin && (
+                            <DashboardCard
+                                icon={<User className="w-8 h-8 text-red-500" strokeWidth={2} />}
+                                label="Guru/Mentor"
+                                value={formatNumber(stats?.total_mentor ?? 0)}
+                                color="red"
+                                isLoading={isLoading}
+                            />
+                        )}
                         <DashboardCard
                             icon={<School className="w-8 h-8 text-sky-500" strokeWidth={2} />}
                             label="Murid"
                             value={formatNumber(stats?.total_siswa ?? 0)}
+                            color="sky"
+                            isLoading={isLoading}
+                        />
+                        <DashboardCard
+                            icon={<Book className="w-8 h-8 text-sky-500" strokeWidth={2} />}
+                            label={isAdmin ? 'Kelas' : 'Kelas Saya'}
+                            value={formatNumber(stats?.total_kelas ?? 0)}
                             color="sky"
                             isLoading={isLoading}
                         />
@@ -56,7 +73,7 @@ export default function Dashboard() {
                         />
                         <DashboardCard
                             icon={<Wallet className="w-8 h-8 text-green-500" strokeWidth={2} />}
-                            label="Penghasilan"
+                            label={isAdmin ? 'Total Gaji' : 'Penghasilan'}
                             value={formatCurrency(stats?.penghasilan ?? 0)}
                             color="green"
                             isLoading={isLoading}
