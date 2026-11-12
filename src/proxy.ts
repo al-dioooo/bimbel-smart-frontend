@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import type { NextRequest } from "next/server"
 
+// The HttpOnly session cookie set by app/api/auth/login (see lib/server/session.ts).
 const AUTH_COOKIE = "bimbel_smart_auth_token"
 
 /**
@@ -22,7 +23,8 @@ export function proxy(req: NextRequest) {
     const token = req.cookies.get(AUTH_COOKIE)?.value ?? null
     const isLoginRoute = req.nextUrl.pathname === "/login"
 
-    if (PASSWORD_ROUTES.includes(req.nextUrl.pathname)) {
+    // Route handlers (the API proxy and login/logout) answer for themselves.
+    if (req.nextUrl.pathname.startsWith("/api/") || PASSWORD_ROUTES.includes(req.nextUrl.pathname)) {
         return NextResponse.next()
     }
 
