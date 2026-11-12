@@ -68,13 +68,13 @@ export default function ProfileAction({
                         </Link>
                     </HighlightItem>
 
-                    {/* Menu Log Out */}
+                    {/* Menu Keluar (logout, REQ-008) */}
                     <HighlightItem>
                         <button onClick={onLogout} className="flex w-full cursor-pointer space-x-3 items-center px-3 py-2.5 text-red-500 hover:bg-red-50 rounded-md transition-colors">
                             <div>
                                 <Logout className="w-5 h-5" />
                             </div>
-                            <div>Log Out</div>
+                            <div>Keluar</div>
                         </button>
                     </HighlightItem>
 

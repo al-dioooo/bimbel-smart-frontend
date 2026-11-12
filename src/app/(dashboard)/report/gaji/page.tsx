@@ -85,7 +85,7 @@ export default function ReportGajiPage() {
     return (
         <div className="space-y-6">
             <PageHeader
-                title="Konversi Gaji Mentor"
+                title="Laporan Gaji Mentor"
                 description="Gaji pokok dihitung dari tarif kelas dikali jumlah kehadiran siswa, ditambah bonus dan dikurangi potongan."
             />
 

@@ -28,7 +28,7 @@ export default function Sidebar() {
                         <li className="space-y-1">
                             <SidebarLink type="main" label="Jadwal" href="/jadwal" icon={<Calendar className="w-5 h-5" />} activePath="/jadwal" />
                             <SidebarLink type="sublink" label="Kalender" href="/jadwal" activePath="/jadwal" exact />
-                            <SidebarLink type="sublink" label="List" href="/jadwal/list" activePath="/jadwal/list" exact />
+                            <SidebarLink type="sublink" label="Daftar" href="/jadwal/list" activePath="/jadwal/list" exact />
                             <SidebarLink type="sublink" label="Pengajuan" href="/jadwal/pengajuan" activePath="/jadwal/pengajuan" />
                         </li>
                         {isAdmin && (
@@ -47,8 +47,8 @@ export default function Sidebar() {
                             </>
                         )}
                         <li className="space-y-1">
-                            {/* Report had the same Database icon as Data. */}
-                            <SidebarLink type="main" label="Report" href="/report/absensi" icon={<ChartBar className="w-5 h-5" />} activePath="/report" />
+                            {/* Laporan had the same Database icon as Data. */}
+                            <SidebarLink type="main" label="Laporan" href="/report/absensi" icon={<ChartBar className="w-5 h-5" />} activePath="/report" />
                             <SidebarLink type="sublink" label="Absensi" href="/report/absensi" activePath="/report/absensi" />
                             {isAdmin ? (
                                 <SidebarLink type="sublink" label="Gaji" href="/report/gaji" activePath="/report/gaji" />

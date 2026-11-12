@@ -201,7 +201,7 @@ export default function Form({ data, onSubmit, errors }: Props) {
             </FormSection>
 
             <div className="flex items-center justify-end text-sm">
-                <PrimaryButton type="submit">Submit</PrimaryButton>
+                <PrimaryButton type="submit">Simpan</PrimaryButton>
             </div>
         </form>
     )

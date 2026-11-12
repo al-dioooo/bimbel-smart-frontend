@@ -89,7 +89,7 @@ export default function ListAturanGajiPage() {
                             className="text-xs"
                             icon={<ArrowNarrowLeft className="w-5 h-5" />}
                         >
-                            Kembali ke Report Gaji
+                            Kembali ke Laporan Gaji
                         </OutlineButton>
                         {/* UC-11: the API always supported creating a rule; the page had no way in. */}
                         <OutlineButton as="link" href="/aturan-gaji/create" className="text-xs" icon={<CircleDashedPlus className="w-5 h-5" />}>

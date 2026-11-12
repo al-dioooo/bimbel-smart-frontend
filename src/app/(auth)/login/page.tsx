@@ -22,7 +22,8 @@ function toMessages(error: unknown): string[] {
     if (response.status === 422 && response.data?.errors) {
         return Object.values(response.data.errors).flat()
     }
-    if (response.status === 401) return ["Username/email atau password salah."]
+    // UC-01 4a / REQ-007.
+    if (response.status === 401) return [response.data?.message ?? "Username atau password salah."]
     if (response.status === 403) return [response.data?.message ?? "Akun Anda tidak memiliki akses."]
     return [response.data?.message ?? "Terjadi kesalahan. Silakan coba lagi."]
 }
@@ -50,12 +51,9 @@ export default function LoginPage() {
     const handleLogin = async (e: React.FormEvent) => {
         e.preventDefault()
 
-        const nextErrors: string[] = []
-        if (!username.trim()) nextErrors.push("Username/email tidak boleh kosong")
-        if (!password.trim()) nextErrors.push("Password tidak boleh kosong")
-
-        if (nextErrors.length > 0) {
-            setErrors(nextErrors)
+        // UC-01 3a.
+        if (!username.trim() || !password.trim()) {
+            setErrors(["Username dan password tidak boleh kosong."])
             return
         }
 
