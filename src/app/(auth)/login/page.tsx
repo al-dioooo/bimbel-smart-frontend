@@ -1,7 +1,7 @@
 "use client"
 
-import { useState } from "react"
-import { useRouter } from "next/navigation"
+import { Suspense, useState } from "react"
+import { useRouter, useSearchParams } from "next/navigation"
 import Image from "next/image"
 
 import Input from "@/components/forms/input"
@@ -24,6 +24,18 @@ function toMessages(error: unknown): string[] {
     if (response.status === 401) return ["Username/email atau password salah."]
     if (response.status === 403) return [response.data?.message ?? "Akun Anda tidak memiliki akses."]
     return [response.data?.message ?? "Terjadi kesalahan. Silakan coba lagi."]
+}
+
+/** Shown after the API ended the session (logout elsewhere, or 30 idle minutes). */
+function SessionNotice() {
+    const params = useSearchParams()
+    if (params.get("sesi") !== "berakhir") return null
+
+    return (
+        <div role="status" className="w-full bg-amber-50 border border-amber-200 text-amber-700 text-sm px-4 py-3 rounded-xl mb-4">
+            Sesi Anda telah berakhir. Silakan login kembali.
+        </div>
+    )
 }
 
 export default function LoginPage() {
@@ -79,6 +91,10 @@ export default function LoginPage() {
                     <p className="text-center text-sm text-neutral-500 mb-6">
                         Silakan masuk untuk melanjutkan
                     </p>
+
+                    <Suspense fallback={null}>
+                        <SessionNotice />
+                    </Suspense>
 
                     {errors.length > 0 && (
                         <div role="alert" className="w-full bg-red-50 border border-red-200 text-red-600 text-sm px-4 py-3 rounded-xl mb-4">
