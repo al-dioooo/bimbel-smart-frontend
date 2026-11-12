@@ -1,6 +1,7 @@
 'use client'
 
 import { useMemo, useState } from "react"
+import { useSearchParams } from "next/navigation"
 import moment from "moment"
 import { toast } from "sonner"
 import { mutate } from "swr"
@@ -27,7 +28,12 @@ export default function ListAbsensiPage() {
     // Mentors only fill attendance for the kelas they teach.
     const { data: kelasList, isLoading: isLoadingKelas } = useKelas({ paginate: false, ...scope })
 
-    const [selectedKelas, setSelectedKelas] = useState<number | null>(null)
+    // The dashboard's reminders link here with ?kelas_id= to open that class.
+    const searchParams = useSearchParams()
+    const [selectedKelas, setSelectedKelas] = useState<number | null>(() => {
+        const fromLink = Number(searchParams.get('kelas_id'))
+        return Number.isInteger(fromLink) && fromLink > 0 ? fromLink : null
+    })
     const [draft, setDraft] = useState<AttendanceDraft>({})
     const [notes, setNotes] = useState<AttendanceNotes>({})
     const [isSaving, setIsSaving] = useState(false)

@@ -10,6 +10,7 @@ import BarChart from "@/components/barChart"
 import MiniCalendar from "@/components/miniCalendar"
 import PengajuanDashboard from "@/components/pengajuanDashboard"
 import JadwalDashboard from "@/components/jadwalDashboard"
+import PeringatanAbsensi from "@/components/peringatan-absensi"
 import { Book, School, User, Users, Wallet } from "@/components/icons/outline"
 
 import { useDashboardStats } from "@/hooks/repositories/use-dashboard"
@@ -30,6 +31,9 @@ export default function Dashboard() {
     return (
         <div className="space-y-8">
             <PageHeader title="Dashboard" description={periodLabel} />
+
+            {/* UC-16: reminders for the mentor on login; hidden when there are none. */}
+            {!isAdmin && <PeringatanAbsensi stats={stats} />}
 
             {error && (
                 <div className="rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-600">

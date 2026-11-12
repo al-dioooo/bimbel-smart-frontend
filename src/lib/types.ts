@@ -211,6 +211,17 @@ export interface ReportGajiDetailRow {
     status: 'draft' | 'final'
 }
 
+/** A session in the mentor's dashboard reminders (UC-16). */
+export interface SesiPengingat {
+    jadwal_id: number
+    kelas_id: number
+    kelas: string
+    tanggal: string
+    waktu_mulai: string
+    waktu_selesai: string
+    materi: string | null
+}
+
 export interface DashboardStats {
     periode: { from: string; to: string }
     /** REQ-067; admins only. */
@@ -218,6 +229,11 @@ export interface DashboardStats {
     /** All kelas for admins, the mentor's own kelas for mentors. */
     total_kelas: number
     total_siswa: number
+    /** UC-16 2b (mentors only): past sessions without absensi, newest ten. */
+    absensi_belum_diisi?: SesiPengingat[]
+    jumlah_absensi_belum_diisi?: number
+    /** UC-16 2a (mentors only): today's sessions. */
+    jadwal_hari_ini?: (SesiPengingat & { sudah_diabsen: boolean })[]
     total_kehadiran: number
     penghasilan: number
     persentase_kehadiran: number
