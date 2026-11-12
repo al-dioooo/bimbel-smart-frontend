@@ -1,8 +1,6 @@
-import api from '@/lib/axios'
+import api, { AUTH_COOKIE as COOKIE_KEY } from '@/lib/axios'
 import { setCookie, destroyCookie } from 'nookies'
 import { mutate } from 'swr'
-
-const COOKIE_KEY = 'bimbel_smart_auth_token'
 
 export async function login(identifier: string, password: string) {
     const { data } = await api.post('/login', { identifier, password })
@@ -29,6 +27,15 @@ export async function register(
     return data
 }
 
+/**
+ * REQ-010: the API revokes the token; the cookie goes either way, so a
+ * failed request (e.g. an already expired token) still logs the user out.
+ */
 export async function logout() {
-    return api.post('/logout').then(() => destroyCookie(null, COOKIE_KEY, { path: '/' }))
+    try {
+        await api.post('/logout')
+    } finally {
+        destroyCookie(null, COOKIE_KEY, { path: '/' })
+        await mutate('/me', null, { revalidate: false })
+    }
 }
