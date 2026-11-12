@@ -1,6 +1,6 @@
 import { NextResponse, type NextRequest } from 'next/server'
 
-import { apiUrl, clearToken, isCrossOriginWrite, readToken } from '@/lib/server/session'
+import { apiUrl, clearToken, clientIpHeaders, isCrossOriginWrite, readToken } from '@/lib/server/session'
 
 /** REQ-010: revokes the token on the API, then drops the cookie whatever the API says. */
 export async function POST(req: NextRequest) {
@@ -14,7 +14,7 @@ export async function POST(req: NextRequest) {
     if (token) {
         const upstream = await fetch(apiUrl('/logout'), {
             method: 'POST',
-            headers: { Accept: 'application/json', Authorization: `Bearer ${token}` },
+            headers: { Accept: 'application/json', Authorization: `Bearer ${token}`, ...clientIpHeaders(req) },
             cache: 'no-store',
         }).catch(() => null)
         const body = await upstream?.json().catch(() => null)

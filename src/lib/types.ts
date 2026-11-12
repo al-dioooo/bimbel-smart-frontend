@@ -220,6 +220,8 @@ export interface SesiPengingat {
     waktu_mulai: string
     waktu_selesai: string
     materi: string | null
+    /** REQ-071: some students are recorded, not all (only in absensi_belum_diisi). */
+    belum_lengkap?: boolean
 }
 
 export interface DashboardStats {

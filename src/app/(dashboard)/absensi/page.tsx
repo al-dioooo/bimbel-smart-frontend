@@ -3,6 +3,7 @@
 import { useMemo, useState } from "react"
 import { useSearchParams } from "next/navigation"
 import moment from "moment"
+import Link from "next/link"
 import { toast } from "sonner"
 import { mutate } from "swr"
 
@@ -42,13 +43,26 @@ export default function ListAbsensiPage() {
     // Revalidates every absensi list on screen after a save or a correction.
     const refreshAbsensi = () => mutate((key) => Array.isArray(key) && key[0] === '/absensi')
 
-    // Default to the current month, matching the dashboard's window.
+    // ?bulan=YYYY-MM (the dashboard's reminders link to a session's month);
+    // otherwise the current month, matching the dashboard's window.
+    const bulanParam = searchParams.get('bulan')
+    const bulan = bulanParam && moment(bulanParam, 'YYYY-MM', true).isValid() ? bulanParam : moment().format('YYYY-MM')
+    const isThisMonth = bulan === moment().format('YYYY-MM')
+    // A draft belongs to the month it was typed in: switching month drops it,
+    // so jadwal of a month no longer on screen are never sent.
+    const [draftBulan, setDraftBulan] = useState(bulan)
+    if (draftBulan !== bulan) {
+        setDraftBulan(bulan)
+        setDraft({})
+        setNotes({})
+    }
+
     const range = useMemo(
         () => ({
-            from: moment().startOf('month').format('YYYY-MM-DD'),
-            to: moment().endOf('month').format('YYYY-MM-DD'),
+            from: moment(bulan, 'YYYY-MM').startOf('month').format('YYYY-MM-DD'),
+            to: moment(bulan, 'YYYY-MM').endOf('month').format('YYYY-MM-DD'),
         }),
-        []
+        [bulan]
     )
 
     const pendingCount = Object.values(draft).reduce(
@@ -117,7 +131,16 @@ export default function ListAbsensiPage() {
         <div className="w-full space-y-6 pb-20">
             <PageHeader
                 title="Absensi"
-                description={`Periode ${moment(range.from).format('D MMM')} – ${moment(range.to).format('D MMM YYYY')}`}
+                description={
+                    <>
+                        Periode {moment(range.from).format('D MMM')} – {moment(range.to).format('D MMM YYYY')}
+                        {!isThisMonth && (
+                            <Link href={selectedKelas ? `/absensi?kelas_id=${selectedKelas}` : '/absensi'} className="ml-2 font-semibold text-sky-500 hover:text-sky-600">
+                                Kembali ke bulan ini
+                            </Link>
+                        )}
+                    </>
+                }
                 action={
                     <OutlineButton
                         as="link"

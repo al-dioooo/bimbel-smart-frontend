@@ -1,6 +1,6 @@
 type Props = {
     title: string
-    description?: string
+    description?: React.ReactNode
     /** Rendered on the right — usually a primary action. */
     action?: React.ReactNode
 }
