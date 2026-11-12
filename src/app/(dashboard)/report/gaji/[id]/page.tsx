@@ -15,13 +15,13 @@ import { ArrowNarrowLeft } from "@/components/icons/outline"
 import DataTable, { type Column } from "@/components/data/data-table"
 import { useListParams } from "@/components/data/use-list-params"
 
-import { useReportGajiByMentor } from "@/hooks/repositories/use-report"
+import { useReportGaji, useReportGajiByMentor } from "@/hooks/repositories/use-report"
 import { useAccess } from "@/hooks/use-user"
 import { downloadErrorMessage, downloadFile } from "@/lib/download"
 import { formatCurrency, formatNumber, monthLabel } from "@/lib/format"
 import { toneClasses } from "@/lib/status"
 import { cn } from "@/lib/utils"
-import type { ReportGajiDetailRow } from "@/lib/types"
+import type { ReportGajiDetailRow, ReportGajiRow } from "@/lib/types"
 
 /**
  * Rincian / slip gaji of one mentor (REQ-059, REQ-060): per kelas, the
@@ -52,12 +52,24 @@ export default function ReportGajiDetailPage({ params }: { params: Promise<{ id:
         ...(bulan ? { bulan } : {}),
     })
 
+    // The totals come from the API's monthly rekap of this mentor, unpaginated:
+    // the table below shows one page of kelas rows only, and the rekap is the
+    // same figure as the laporan gaji and the slip (finalized months as stored).
+    const { data: rekapData, isLoading: isLoadingRekap } = useReportGaji({
+        mentor_id: Number(id),
+        paginate: false,
+        ...(bulan ? { bulan } : {}),
+    })
+    const rekap = (rekapData as unknown as ReportGajiRow[] | undefined) ?? []
+    const sumOf = (key: 'gaji_pokok' | 'bonus' | 'potongan' | 'nominal') => rekap.reduce((sum, row) => sum + Number(row[key] ?? 0), 0)
+
     const rows = data?.rows?.data ?? []
     const penyesuaian = data?.penyesuaian ?? []
-    const mentorName = rows[0]?.mentor
-    const pokok = rows.reduce((sum, row) => sum + Number(row.nominal ?? 0), 0)
-    const bonus = penyesuaian.filter((p) => p.jenis === 'bonus').reduce((sum, p) => sum + Number(p.nominal), 0)
-    const potongan = penyesuaian.filter((p) => p.jenis === 'potongan').reduce((sum, p) => sum + Number(p.nominal), 0)
+    const mentorName = rows[0]?.mentor ?? rekap[0]?.mentor
+    const pokok = sumOf('gaji_pokok')
+    const bonus = sumOf('bonus')
+    const potongan = sumOf('potongan')
+    const totalGaji = sumOf('nominal')
     const isFinal = rows.length > 0 && rows.every((row) => row.status === 'final')
 
     const [isDownloading, setIsDownloading] = useState(false)
@@ -147,7 +159,7 @@ export default function ReportGajiDetailPage({ params }: { params: Promise<{ id:
                     <div>
                         <p className="text-xs font-medium text-neutral-500">{bulan ? `Total Gaji ${moment(bulan).format('MMMM YYYY')}` : 'Total Gaji (semua bulan)'}</p>
                         <p className="mt-1 text-3xl font-bold text-emerald-600">
-                            {isLoading ? '—' : formatCurrency(pokok + bonus - potongan)}
+                            {isLoadingRekap ? '—' : formatCurrency(totalGaji)}
                         </p>
                     </div>
                     {bulan && rows.length > 0 && (
