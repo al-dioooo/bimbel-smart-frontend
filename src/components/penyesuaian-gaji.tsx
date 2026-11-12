@@ -74,7 +74,7 @@ export default function PenyesuaianGajiSection({ bulan, label, locked, onChanged
                 )}
             </div>
 
-            <div className="overflow-x-auto rounded-xl border border-neutral-200 bg-white">
+            <div className="relative overflow-x-auto rounded-xl border border-neutral-200 bg-white">
                 <table className="min-w-full divide-y divide-neutral-200 text-xs">
                     <thead className="bg-neutral-50 text-left uppercase text-neutral-500">
                         <tr>

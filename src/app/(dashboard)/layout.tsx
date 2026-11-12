@@ -6,6 +6,7 @@ import { usePathname, useRouter } from "next/navigation"
 
 import Sidebar from "@/components/partials/sidebar"
 import Topbar from "@/components/partials/topbar"
+import { SidebarProvider } from "@/components/partials/sidebar-state"
 import { useUser } from "@/hooks/use-user"
 import { canAccess } from "@/lib/access"
 
@@ -67,11 +68,13 @@ function RoleGate({ children }: { children: React.ReactNode }) {
 
 export default function DashboardLayout({ children }: Readonly<{ children: React.ReactNode }>) {
     return (
+        <SidebarProvider>
         <div className="flex">
             <Sidebar />
-            <div className="ml-72 mr-3 my-3 flex flex-col w-full min-h-[calc(100vh-1.5rem)] bg-white border border-neutral-200 rounded-xl">
+            {/* min-w-0 lets wide tables scroll inside their own box instead of widening the page (N4). */}
+            <div className="mx-2 sm:mx-3 lg:ml-72 lg:mr-3 my-2 sm:my-3 flex flex-col w-full min-w-0 min-h-[calc(100dvh-1.5rem)] bg-white border border-neutral-200 rounded-xl">
                 <Topbar />
-                <div className="px-6 pb-8 pt-4">
+                <div className="px-4 sm:px-6 pb-8 pt-4">
                     {/* Every list page reads useSearchParams; one boundary here covers them all. */}
                     <Suspense fallback={<PageFallback />}>
                         <RoleGate>{children}</RoleGate>
@@ -79,5 +82,6 @@ export default function DashboardLayout({ children }: Readonly<{ children: React
                 </div>
             </div>
         </div>
+        </SidebarProvider>
     )
 }

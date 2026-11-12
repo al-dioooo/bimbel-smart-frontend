@@ -25,12 +25,12 @@ export default function ProfileAction({
                 {children ? (
                     children
                 ) : (
-                    <div className="flex items-center space-x-4">
+                    <div className="flex items-center sm:space-x-4">
                         <div className="flex items-center space-x-2">
                             <div className="p-2 group-hover:from-sky-400 group-hover:to-sky-200 transition rounded-xl bg-radial-[at_20%_20%] from-sky-500 to-sky-300">
                                 <User className="text-white w-6 h-6" />
                             </div>
-                            <div className="text-left group-hover:text-neutral-500 transition">
+                            <div className="hidden sm:block text-left group-hover:text-neutral-500 transition">
                                 {/* Don't assert a name or role before /me resolves — this
                                     used to render an empty name labelled "Mentor". */}
                                 {isLoading || !user ? (
@@ -49,7 +49,7 @@ export default function ProfileAction({
                             </div>
                         </div>
 
-                        <ChevronDown strokeWidth={2} className="w-4 h-4 group-hover:text-neutral-500 transition" />
+                        <ChevronDown strokeWidth={2} className="hidden sm:block w-4 h-4 group-hover:text-neutral-500 transition" />
                     </div>
                 )}
             </PopoverButton>
