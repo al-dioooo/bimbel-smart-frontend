@@ -10,6 +10,7 @@ import { Card } from "@/components/ui/card"
 import PrimaryButton from "@/components/buttons/primary"
 import OutlineButton from "@/components/buttons/outline"
 import ConfirmDialog from "@/components/data/confirm-dialog"
+import PenyesuaianGajiSection from "@/components/penyesuaian-gaji"
 import { Check, Pencil } from "@/components/icons/outline"
 
 import { usePeriodeGaji } from "@/hooks/repositories/use-gaji"
@@ -174,6 +175,10 @@ export default function ProsesGajiPage() {
                     )}
                 </table>
             </div>
+
+            {data && (
+                <PenyesuaianGajiSection bulan={bulan} label={data.label} locked={isFinal} onChanged={() => mutate()} />
+            )}
 
             <ConfirmDialog
                 isOpen={confirming}
