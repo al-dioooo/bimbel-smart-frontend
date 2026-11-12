@@ -213,6 +213,10 @@ export interface ReportGajiDetailRow {
 
 export interface DashboardStats {
     periode: { from: string; to: string }
+    /** REQ-067; admins only. */
+    total_mentor?: number
+    /** All kelas for admins, the mentor's own kelas for mentors. */
+    total_kelas: number
     total_siswa: number
     total_kehadiran: number
     penghasilan: number
